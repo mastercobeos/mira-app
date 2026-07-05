@@ -171,17 +171,43 @@ export function confetti(n = 90) {
   }
 }
 
-/* Voz (Web Speech API) — opcional, se activa/desactiva. */
+/* Voz (Web Speech API) — con selección INTELIGENTE de la mejor voz.
+   Las "Microsoft ..." locales de Windows suenan robóticas; las de
+   Google (Chrome) son mucho más naturales → se prefieren. El usuario
+   puede elegir otra en el panel 🧠 (se guarda en localStorage). */
 let voiceOn = true;
+let voicesCache = [];
+function loadVoices() { try { voicesCache = window.speechSynthesis.getVoices() || []; } catch { voicesCache = []; } }
+if ('speechSynthesis' in window) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+export function spanishVoices() { loadVoices(); return voicesCache.filter(v => /^es/i.test(v.lang)); }
+export function getVoicePref() { try { return localStorage.getItem('mira.voice') || ''; } catch { return ''; } }
+export function setVoicePref(name) { try { name ? localStorage.setItem('mira.voice', name) : localStorage.removeItem('mira.voice'); } catch {} }
+
+function pickVoice() {
+  const list = spanishVoices();
+  if (!list.length) return null;
+  const pref = getVoicePref();
+  if (pref) { const v = list.find(v => v.name === pref); if (v) return v; }
+  return list.find(v => /google/i.test(v.name) && /es[-_](us|419|mx)/i.test(v.lang))  // Google latino
+      || list.find(v => /google/i.test(v.name))                                       // Google es
+      || list.find(v => /natural|neural|online/i.test(v.name))                        // neurales (Edge)
+      || list.find(v => /es[-_]mx/i.test(v.lang))                                     // es-MX local
+      || list[0];
+}
+
 export function setVoice(on) { voiceOn = on; if (!on) window.speechSynthesis?.cancel(); }
 export function speak(text) {
   if (!voiceOn || !('speechSynthesis' in window) || !text) return;
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(text).replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, ''));
-    u.lang = 'es-ES'; u.rate = 1; u.pitch = 1.15;
-    const v = window.speechSynthesis.getVoices().find(v => /es/i.test(v.lang));
-    if (v) u.voice = v;
+    const v = pickVoice();
+    if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = 'es-MX'; }
+    u.rate = 1.02; u.pitch = 1.08;
     window.speechSynthesis.speak(u);
   } catch {}
 }
