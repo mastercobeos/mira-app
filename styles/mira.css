@@ -35,9 +35,31 @@
   pointer-events: none;
 }
 .mira__art.is-on { opacity: 1; }
+
+/* Capa de PARPADEO: mismo sprite con ojos cerrados, encima de todo.
+   Sin transición (el parpadeo es un flash de ~130ms, debe ser instantáneo). */
+.mira__blink {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  top: auto;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  opacity: 0;
+  z-index: 2;
+  filter: drop-shadow(0 8px 14px rgba(91,63,214,.18));
+  pointer-events: none;
+}
+.mira__blink.is-blinking { opacity: 1; }
+
 /* Ajuste fino por rol (el birrete de la profe ocupa un poco más de alto) */
-.mira[data-role="teacher"] .mira__art { height: 104%; }
-.mira[data-role="learner"] .mira__art { height: 100%; }
+.mira[data-role="teacher"] .mira__art,
+.mira[data-role="teacher"] .mira__blink { height: 104%; }
+.mira[data-role="learner"] .mira__art,
+.mira[data-role="learner"] .mira__blink { height: 100%; }
 
 /* Flote suave permanente (en el contenedor externo, para no chocar con el rebote) */
 .mira { animation: miraFloat 4s var(--ease-soft) infinite; }

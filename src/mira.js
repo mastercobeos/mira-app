@@ -34,6 +34,11 @@ function spriteFile(role, mood) {
   return `avatars/${role}-${m}.png`;
 }
 
+/* Variante "ojos cerrados" del sprite (misma pose) para el parpadeo. */
+function blinkFile(role, mood) {
+  return spriteFile(role, mood).replace('.png', '-blink.png');
+}
+
 /* HTML del retrato de MIRA (medio cuerpo, 2 capas para cross-fade). */
 export function miraPortrait({ role = 'teacher', mood = 'happy', showMood = true } = {}) {
   return `
@@ -41,6 +46,7 @@ export function miraPortrait({ role = 'teacher', mood = 'happy', showMood = true
       <div class="mira__portrait" data-mood="${mood}">
         <img class="mira__art is-on" src="${spriteFile(role, mood)}" alt="MIRA" draggable="false">
         <img class="mira__art" alt="" draggable="false">
+        <img class="mira__blink" src="${blinkFile(role, mood)}" alt="" draggable="false">
       </div>
       <div class="mira__floor"></div>
       ${showMood ? `
@@ -56,11 +62,15 @@ let _cycleTimer = null;
 let _cycleScope = null;
 let _cycleIdx = 0;
 const CYCLE_MS = 2600;
+/* ---- Parpadeo (swap instantáneo al sprite -blink por ~130ms) ---- */
+let _blinkTimer = null;
+const BLINK_MS = 130;
 
 /* Llamar tras montar cada pantalla: arranca el vaivén de expresiones. */
 export function initMira(scope) {
   const mira = scope && scope.querySelector('.mira');
   if (_cycleTimer) { clearInterval(_cycleTimer); _cycleTimer = null; }
+  if (_blinkTimer) { clearTimeout(_blinkTimer); _blinkTimer = null; }
   if (!mira) return;
   _cycleScope = scope; _cycleIdx = 0;
   _cycleTimer = setInterval(() => {
@@ -72,6 +82,33 @@ export function initMira(scope) {
     _cycleIdx = (_cycleIdx + 1) % list.length;
     applyExpression(sc, role, list[_cycleIdx], { label: true });
   }, CYCLE_MS);
+  scheduleBlink();
+}
+
+function scheduleBlink() {
+  clearTimeout(_blinkTimer);
+  _blinkTimer = setTimeout(doBlink, 2200 + Math.random() * 2600);
+}
+
+function doBlink() {
+  const sc = _cycleScope;
+  const p = sc && sc.querySelector('.mira__portrait');
+  if (!p || !document.body.contains(p)) { _blinkTimer = null; return; }
+  const bl = p.querySelector('.mira__blink');
+  // solo parpadea si el sprite -blink cargó bien (si falta, se salta sin romper)
+  if (bl && bl.complete && bl.naturalWidth) {
+    bl.classList.add('is-blinking');
+    setTimeout(() => {
+      bl.classList.remove('is-blinking');
+      // doble parpadeo ocasional (se ve más vivo)
+      if (Math.random() < 0.22) setTimeout(() => {
+        if (!document.body.contains(bl)) return;
+        bl.classList.add('is-blinking');
+        setTimeout(() => bl.classList.remove('is-blinking'), BLINK_MS);
+      }, 150);
+    }, BLINK_MS);
+  }
+  scheduleBlink();
 }
 
 /* Cross-fade entre las 2 capas de imagen del retrato. */
@@ -91,6 +128,13 @@ function applyExpression(scope, role, mood, { label = true } = {}) {
     else off.onload = swap;
   }
   p.dataset.mood = mood;
+  // la capa de parpadeo acompaña a la expresión actual
+  const bl = p.querySelector('.mira__blink');
+  if (bl) {
+    bl.classList.remove('is-blinking');
+    const bsrc = blinkFile(role, mood);
+    if (bl.getAttribute('src') !== bsrc) bl.src = bsrc;
+  }
   if (label) {
     const val = scope.querySelector('[data-mood-value]');
     if (val) val.textContent = MOOD_LABEL[mood] || 'Feliz';
