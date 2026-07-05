@@ -62,11 +62,15 @@ export function miraPortrait({ role = 'teacher', mood = 'happy', showMood = true
     </div>`;
 }
 
-/* ---- Ciclo de expresiones (una MIRA visible a la vez) ---- */
+/* ---- Ciclo de expresiones (una MIRA visible a la vez) ----
+   Cambio "idle" cada 5-10s (aleatorio). Los momentos del guión
+   (setMood: acierto/error/reto) fijan la expresión al instante y
+   REINICIAN el reloj, así la cara contextual se sostiene 5-10s. */
 let _cycleTimer = null;
 let _cycleScope = null;
 let _cycleIdx = 0;
-const CYCLE_MS = 2600;
+const CYCLE_MIN_MS = 5000;
+const CYCLE_MAX_MS = 10000;
 /* ---- Parpadeo (swap instantáneo al sprite -blink por ~130ms) ---- */
 let _blinkTimer = null;
 const BLINK_MS = 130;
@@ -77,21 +81,29 @@ let _talking = false;
 /* Llamar tras montar cada pantalla: arranca el vaivén de expresiones. */
 export function initMira(scope) {
   const mira = scope && scope.querySelector('.mira');
-  if (_cycleTimer) { clearInterval(_cycleTimer); _cycleTimer = null; }
+  if (_cycleTimer) { clearTimeout(_cycleTimer); _cycleTimer = null; }
   if (_blinkTimer) { clearTimeout(_blinkTimer); _blinkTimer = null; }
   stopTalking();
   if (!mira) return;
   _cycleScope = scope; _cycleIdx = 0;
-  _cycleTimer = setInterval(() => {
-    const sc = _cycleScope;
-    const m = sc && sc.querySelector('.mira');
-    if (!m || !document.body.contains(m)) { clearInterval(_cycleTimer); _cycleTimer = null; return; }
-    const role = m.dataset.role || 'learner';
-    const list = CYCLE[role] || CYCLE.learner;
-    _cycleIdx = (_cycleIdx + 1) % list.length;
-    applyExpression(sc, role, list[_cycleIdx], { label: true });
-  }, CYCLE_MS);
+  scheduleCycle();
   scheduleBlink();
+}
+
+function scheduleCycle() {
+  clearTimeout(_cycleTimer);
+  _cycleTimer = setTimeout(doCycle, CYCLE_MIN_MS + Math.random() * (CYCLE_MAX_MS - CYCLE_MIN_MS));
+}
+
+function doCycle() {
+  const sc = _cycleScope;
+  const m = sc && sc.querySelector('.mira');
+  if (!m || !document.body.contains(m)) { _cycleTimer = null; return; }
+  const role = m.dataset.role || 'learner';
+  const list = CYCLE[role] || CYCLE.learner;
+  _cycleIdx = (_cycleIdx + 1) % list.length;
+  applyExpression(sc, role, list[_cycleIdx], { label: true });
+  scheduleCycle();
 }
 
 function scheduleBlink() {
@@ -187,19 +199,19 @@ export function setMira(scope, { role, mood } = {}) {
   if (mood) setMood(scope, mood);
 }
 
-/* Fija una expresión concreta (momento del guión) y reinicia el reloj del ciclo. */
+/* Fija una expresión concreta (momento del guión: acierto, error, reto…)
+   y reinicia el reloj: la cara contextual se sostiene 5-10s antes de que
+   el ciclo idle vuelva a cambiarla. No toca el habla ni el parpadeo. */
 export function setMood(scope, mood) {
   const mira = scope.querySelector('.mira');
   if (!mira) return;
   const role = mira.dataset.role || 'learner';
   applyExpression(scope, role, mood, { label: true });
-  // reinicia el temporizador para que el próximo cambio automático sea en ~2.6s
-  if (_cycleTimer && _cycleScope === scope) {
-    clearInterval(_cycleTimer);
+  if (_cycleScope === scope) {
     const list = CYCLE[role] || CYCLE.learner;
     const found = list.indexOf(mood);
     _cycleIdx = found >= 0 ? found : _cycleIdx;
-    initMira(scope);
+    scheduleCycle();
   }
 }
 
