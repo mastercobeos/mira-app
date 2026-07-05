@@ -38,6 +38,14 @@ function spriteFile(role, mood) {
 function blinkFile(role, mood) {
   return spriteFile(role, mood).replace('.png', '-blink.png');
 }
+/* Variante "boca alterna" (cerrada↔abierta) para el flap de hablar. */
+function talkFile(role, mood) {
+  return spriteFile(role, mood).replace('.png', '-talk.png');
+}
+/* Variante "mirando al contenido" (ojos a la derecha). */
+function lookFile(role, mood) {
+  return spriteFile(role, mood).replace('.png', '-look.png');
+}
 
 /* HTML del retrato de MIRA (medio cuerpo, 2 capas para cross-fade). */
 export function miraPortrait({ role = 'teacher', mood = 'happy', showMood = true } = {}) {
@@ -46,6 +54,8 @@ export function miraPortrait({ role = 'teacher', mood = 'happy', showMood = true
       <div class="mira__portrait" data-mood="${mood}">
         <img class="mira__art is-on" src="${spriteFile(role, mood)}" alt="MIRA" draggable="false">
         <img class="mira__art" alt="" draggable="false">
+        <img class="mira__gaze" src="${lookFile(role, mood)}" alt="" draggable="false">
+        <img class="mira__talk" src="${talkFile(role, mood)}" alt="" draggable="false">
         <img class="mira__blink" src="${blinkFile(role, mood)}" alt="" draggable="false">
       </div>
       <div class="mira__floor"></div>
@@ -65,12 +75,20 @@ const CYCLE_MS = 2600;
 /* ---- Parpadeo (swap instantáneo al sprite -blink por ~130ms) ---- */
 let _blinkTimer = null;
 const BLINK_MS = 130;
+/* ---- Habla (flap de boca mientras la burbuja streamea) ---- */
+let _talkTimer = null;
+let _talking = false;
+/* ---- Mirada (vistazo al contenido de la derecha cada varios seg) ---- */
+let _gazeTimer = null;
+let _glancing = false;
 
 /* Llamar tras montar cada pantalla: arranca el vaivén de expresiones. */
 export function initMira(scope) {
   const mira = scope && scope.querySelector('.mira');
   if (_cycleTimer) { clearInterval(_cycleTimer); _cycleTimer = null; }
   if (_blinkTimer) { clearTimeout(_blinkTimer); _blinkTimer = null; }
+  if (_gazeTimer) { clearTimeout(_gazeTimer); _gazeTimer = null; }
+  stopTalking();
   if (!mira) return;
   _cycleScope = scope; _cycleIdx = 0;
   _cycleTimer = setInterval(() => {
@@ -83,6 +101,7 @@ export function initMira(scope) {
     applyExpression(sc, role, list[_cycleIdx], { label: true });
   }, CYCLE_MS);
   scheduleBlink();
+  scheduleGaze();
 }
 
 function scheduleBlink() {
@@ -95,8 +114,8 @@ function doBlink() {
   const p = sc && sc.querySelector('.mira__portrait');
   if (!p || !document.body.contains(p)) { _blinkTimer = null; return; }
   const bl = p.querySelector('.mira__blink');
-  // solo parpadea si el sprite -blink cargó bien (si falta, se salta sin romper)
-  if (bl && bl.complete && bl.naturalWidth) {
+  // no parpadear mientras habla o echa un vistazo (evita mezclar capas)
+  if (bl && bl.complete && bl.naturalWidth && !_talking && !_glancing) {
     bl.classList.add('is-blinking');
     setTimeout(() => {
       bl.classList.remove('is-blinking');
@@ -109,6 +128,50 @@ function doBlink() {
     }, BLINK_MS);
   }
   scheduleBlink();
+}
+
+/* La boca alterna base↔variante mientras MIRA "dice" su burbuja. */
+export function startTalking() {
+  if (_talking) return;
+  _talking = true;
+  const flap = () => {
+    if (!_talking) return;
+    const sc = _cycleScope;
+    const t = sc && sc.querySelector('.mira__talk');
+    if (t && document.body.contains(t) && t.complete && t.naturalWidth) {
+      t.classList.toggle('is-on');
+    }
+    _talkTimer = setTimeout(flap, 95 + Math.random() * 85);
+  };
+  flap();
+}
+
+export function stopTalking() {
+  _talking = false;
+  clearTimeout(_talkTimer);
+  const sc = _cycleScope;
+  const t = sc && sc.querySelector('.mira__talk');
+  if (t) t.classList.remove('is-on');
+}
+
+function scheduleGaze() {
+  clearTimeout(_gazeTimer);
+  _gazeTimer = setTimeout(doGaze, 6000 + Math.random() * 5000);
+}
+
+function doGaze() {
+  const sc = _cycleScope;
+  const g = sc && sc.querySelector('.mira__gaze');
+  if (!g || !document.body.contains(g)) { _gazeTimer = null; return; }
+  if (!_talking && g.complete && g.naturalWidth) {
+    _glancing = true;
+    g.classList.add('is-on');
+    setTimeout(() => {
+      g.classList.remove('is-on');
+      _glancing = false;
+    }, 900 + Math.random() * 500);
+  }
+  scheduleGaze();
 }
 
 /* Cross-fade entre las 2 capas de imagen del retrato. */
@@ -128,12 +191,22 @@ function applyExpression(scope, role, mood, { label = true } = {}) {
     else off.onload = swap;
   }
   p.dataset.mood = mood;
-  // la capa de parpadeo acompaña a la expresión actual
+  // las capas (parpadeo/habla/mirada) acompañan a la expresión actual
   const bl = p.querySelector('.mira__blink');
   if (bl) {
     bl.classList.remove('is-blinking');
     const bsrc = blinkFile(role, mood);
     if (bl.getAttribute('src') !== bsrc) bl.src = bsrc;
+  }
+  const tk = p.querySelector('.mira__talk');
+  if (tk) {
+    const tsrc = talkFile(role, mood);
+    if (tk.getAttribute('src') !== tsrc) { tk.classList.remove('is-on'); tk.src = tsrc; }
+  }
+  const gz = p.querySelector('.mira__gaze');
+  if (gz) {
+    const gsrc = lookFile(role, mood);
+    if (gz.getAttribute('src') !== gsrc) { gz.classList.remove('is-on'); gz.src = gsrc; }
   }
   if (label) {
     const val = scope.querySelector('[data-mood-value]');
@@ -180,9 +253,10 @@ export async function streamBubble(bubbleEl, prompt, { onChunk } = {}) {
   bubbleEl.innerHTML = typingHTML();
   let started = false;
   const text = await stream(prompt, (acc) => {
-    if (!started && acc.trim()) { started = true; }
+    if (!started && acc.trim()) { started = true; startTalking(); }
     if (started) { bubbleEl.innerHTML = escapeHTML(acc) + `<span class="caret"></span>`; onChunk && onChunk(acc); }
   }).catch((e) => (e && e.message === 'SETUP' ? 'SETUP' : null));
+  stopTalking();
   if (text === 'SETUP') {
     bubbleEl.innerHTML = 'Necesito mi cerebro 🧠 Toca el botón 🧠 de arriba y pega tu clave de Gemini (¡es gratis!).';
     return null;
