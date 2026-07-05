@@ -27,11 +27,5 @@ export function welcome(app, screen) {
       </div>
     </div>`;
 
-  // Presentación por voz (frame 1: audio + texto)
-  setTimeout(() => speak(GREETING), 350);
-
-  screen.querySelector('#startBtn').addEventListener('click', () => {
-    window.speechSynthesis?.cancel();
-    app.go('topic');
-  });
+  screen.querySelector('#startBtn').addEventListener('click', () => app.go('topic'));
 }

@@ -6,7 +6,6 @@
    ============================================================ */
 
 import { getGeminiKey, setGeminiKey, validateGeminiKey, engineMode, isLocalHost, needsSetup } from './engine.js';
-import { spanishVoices, getVoicePref, setVoicePref, speak } from './mira.js';
 import { sfx } from './sfx.js';
 
 export function initSettings() {
@@ -41,15 +40,6 @@ export function openSettings(firstTime = false) {
         ${hasKey ? '<button class="btn btn--ghost" id="gkeyRemove">Quitar clave</button>' : ''}
       </div>
       <div class="modal__status" id="gkeyStatus">${statusLine()}</div>
-      <hr style="border:none;border-top:2px dashed var(--line);margin:14px 0;">
-      <h4 class="modal__title" style="font-size:17px;margin-bottom:6px;">🗣️ Voz de MIRA</h4>
-      <div class="modal__row" style="display:flex;gap:8px;">
-        <select id="voiceSelect" style="flex:1;border:2px solid var(--line-2);border-radius:var(--r-md);padding:11px 12px;font-family:var(--font-body);font-size:14px;color:var(--ink);outline:none;">
-          <option value="">✨ La mejor disponible (auto)</option>
-          ${spanishVoices().map(v => `<option value="${v.name}" ${getVoicePref() === v.name ? 'selected' : ''}>${v.name} (${v.lang})${/google/i.test(v.name) ? ' ⭐' : ''}</option>`).join('')}
-        </select>
-        <button class="btn btn--ghost" id="voiceTest" style="padding:10px 16px;">▶ Probar</button>
-      </div>
       <p class="modal__note">🔒 Tu clave se guarda solo en este navegador. Nunca sale de tu computadora ni se sube a ningún lado.</p>
     </div>`;
   document.body.appendChild(el);
@@ -81,13 +71,6 @@ export function openSettings(firstTime = false) {
     status.textContent = statusLine();
     input.value = '';
     sfx.pop();
-  });
-
-  // — voz: guardar preferencia + probar —
-  const sel = el.querySelector('#voiceSelect');
-  sel.addEventListener('change', () => { setVoicePref(sel.value); sfx.pop(); });
-  el.querySelector('#voiceTest').addEventListener('click', () => {
-    speak('¡Hola! Soy MIRA y así suena mi voz. ¿Te gusta?');
   });
 }
 

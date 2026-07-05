@@ -6,7 +6,7 @@
    ============================================================ */
 
 import { state, load, resetSession } from './state.js';
-import { setVoice, initMira } from './mira.js';
+import { initMira } from './mira.js';
 import { initSettings } from './settings.js';
 
 import { welcome } from './screens/welcome.js';
@@ -60,7 +60,6 @@ const app = {
 
   restart() {
     resetSession();
-    window.speechSynthesis?.cancel();
     this.go('welcome');
   },
 };
@@ -72,15 +71,6 @@ function boot() {
   // Botón "reiniciar" del topbar
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) restartBtn.addEventListener('click', () => app.restart());
-
-  // Toggle de voz
-  const voiceBtn = document.getElementById('voiceBtn');
-  if (voiceBtn) voiceBtn.addEventListener('click', () => {
-    const on = voiceBtn.getAttribute('aria-pressed') !== 'true';
-    voiceBtn.setAttribute('aria-pressed', String(on));
-    voiceBtn.textContent = on ? '🔊' : '🔇';
-    setVoice(on);
-  });
 
   initSettings();   // botón 🧠 + auto-abrir si está en la web sin clave
   app.go('welcome');
