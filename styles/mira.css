@@ -36,9 +36,9 @@
 }
 .mira__art.is-on { opacity: 1; }
 
-/* Capas de VIDA (parpadeo, habla, mirada): variantes del sprite actual
+/* Capas de VIDA (parpadeo, habla): variantes del sprite actual
    superpuestas. Sin transición — los cambios son flashes instantáneos. */
-.mira__blink, .mira__talk, .mira__gaze {
+.mira__blink, .mira__talk {
   position: absolute;
   left: 50%;
   bottom: 0;
@@ -52,19 +52,17 @@
   filter: drop-shadow(0 8px 14px rgba(91,63,214,.18));
   pointer-events: none;
 }
-.mira__talk, .mira__gaze { z-index: 2; }
-.mira__blink { z-index: 3; }   /* ojos cerrados ganan sobre habla/mirada */
-.mira__blink.is-blinking, .mira__talk.is-on, .mira__gaze.is-on { opacity: 1; }
+.mira__talk { z-index: 2; }
+.mira__blink { z-index: 3; }   /* ojos cerrados ganan sobre el habla */
+.mira__blink.is-blinking, .mira__talk.is-on { opacity: 1; }
 
 /* Ajuste fino por rol (el birrete de la profe ocupa un poco más de alto) */
 .mira[data-role="teacher"] .mira__art,
 .mira[data-role="teacher"] .mira__blink,
-.mira[data-role="teacher"] .mira__talk,
-.mira[data-role="teacher"] .mira__gaze { height: 104%; }
+.mira[data-role="teacher"] .mira__talk { height: 104%; }
 .mira[data-role="learner"] .mira__art,
 .mira[data-role="learner"] .mira__blink,
-.mira[data-role="learner"] .mira__talk,
-.mira[data-role="learner"] .mira__gaze { height: 100%; }
+.mira[data-role="learner"] .mira__talk { height: 100%; }
 
 /* Flote suave permanente (en el contenedor externo, para no chocar con el rebote) */
 .mira { animation: miraFloat 4s var(--ease-soft) infinite; }
