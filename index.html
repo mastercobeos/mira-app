@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MIRA · Tu compañera de aprendizaje</title>
+  <meta name="description" content="MIRA, tu compañera de aprendizaje con IA. Aprende jugando y luego enséñale tú a ella.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💜</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/mira.css">
+  <link rel="stylesheet" href="styles/screen.css">
+  <link rel="stylesheet" href="styles/visuals.css">
+  <link rel="stylesheet" href="styles/games.css">
+  <link rel="stylesheet" href="styles/activities.css">
+  <link rel="stylesheet" href="styles/settings.css">
+</head>
+<body>
+  <!-- Decoración flotante estilo plastilina (ref: ideaparatema) -->
+  <div class="decor" aria-hidden="true">
+    <span style="left:3%;  top:10%; --s:52px; --d:9s;  --r:-10deg">☁️</span>
+    <span style="left:12%; top:64%; --s:34px; --d:7s;  --r:14deg;  --w:.8s">⭐</span>
+    <span style="left:6%;  top:84%; --s:40px; --d:11s; --r:-6deg;  --w:1.6s">🌸</span>
+    <span style="right:5%; top:8%;  --s:56px; --d:10s; --r:8deg">🌞</span>
+    <span style="right:14%;top:38%; --s:30px; --d:6.5s;--r:-14deg; --w:1.2s">✨</span>
+    <span style="right:4%; top:62%; --s:42px; --d:8s;  --r:10deg;  --w:.4s">🎈</span>
+    <span style="right:22%;top:86%; --s:36px; --d:9.5s;--r:-8deg;  --w:2s">🧁</span>
+    <span style="left:26%; top:6%;  --s:30px; --d:7.5s;--r:12deg;  --w:1s">🌈</span>
+    <span style="left:44%; top:90%; --s:30px; --d:8.5s;--r:-12deg; --w:.6s">⭐</span>
+    <span style="right:38%;top:5%;  --s:26px; --d:6s;  --r:6deg;   --w:1.4s">✨</span>
+  </div>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__logo">
+        <div class="topbar__mark">M</div>
+        <div>
+          <div class="topbar__name">MIRA</div>
+          <div class="topbar__sub">Intelligence Mirror</div>
+        </div>
+      </div>
+      <div class="topbar__spacer"></div>
+      <div class="steps" id="steps" aria-hidden="true"></div>
+      <div class="topbar__spacer"></div>
+      <span class="stars-chip" title="Tus estrellas">⭐ <span data-stars>0</span></span>
+      <button class="chip" id="setupBtn" title="Cerebro de MIRA (clave de Gemini)" style="cursor:pointer;">🧠</button>
+      <button class="chip" id="voiceBtn" aria-pressed="true" title="Voz de MIRA" style="cursor:pointer;">🔊</button>
+      <button class="chip" id="restartBtn" title="Empezar de nuevo" style="cursor:pointer;">↻ Nueva</button>
+    </header>
+
+    <main class="stage" id="stage"><!-- las pantallas se montan aquí --></main>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

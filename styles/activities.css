@@ -1,0 +1,100 @@
+/* ============================================================
+   MIRA · Activities — pizarra mágica (huecos) y diagrama de
+   nodos arrastrables. Estética plastilina/sticker del tema.
+   ============================================================ */
+
+/* — Pizarra mágica — */
+.board-game__line { font-size: clamp(16px, 2.3vw, 20px); }
+.board-blank {
+  display: inline-block; min-width: 84px; text-align: center;
+  background: rgba(255,255,255,.14);
+  border: 2px dashed rgba(255,255,255,.65);
+  border-radius: 10px; padding: 2px 12px; margin: 0 3px;
+  color: #ffe9a3; font-weight: 800; cursor: default;
+  transition: all .25s var(--ease-bounce);
+}
+.board-blank.is-done {
+  background: rgba(122,222,180,.25); border-style: solid; border-color: #7ADEB4;
+  color: #eafff5; animation: blankPop .45s var(--ease-bounce);
+}
+@keyframes blankPop { 0%{ transform: scale(.7);} 60%{ transform: scale(1.15);} 100%{ transform: scale(1);} }
+
+.board-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.board-chip {
+  border: 3px solid #fff; border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #FFD75E, var(--sun));
+  color: #7a4a12; font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  padding: 10px 18px; box-shadow: 0 4px 0 var(--sun-deep);
+  transition: transform .16s var(--ease-bounce), opacity .2s;
+}
+.board-chip:hover { transform: translateY(-3px) rotate(-2deg); }
+.board-chip:active { transform: translateY(2px); }
+.board-chip.is-used { opacity: .25; box-shadow: none; transform: scale(.92); pointer-events: none; }
+.board-chip.is-bad { animation: gWiggle .4s var(--ease-soft); background: linear-gradient(180deg,#ff8d86,var(--coral)); color:#fff; }
+
+/* — Diagrama de nodos — */
+.diagram {
+  width: 100%; max-width: 640px;
+  background: var(--surface);
+  border: 3px solid #fff; border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  padding: clamp(16px, 3vw, 24px);
+}
+.diagram__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(17px, 2.4vw, 21px); color: var(--ink); margin-bottom: 14px; }
+.diagram__hint { margin-top: 12px; font-size: 13px; color: var(--ink-mute); font-weight: 700; }
+
+.diagram__cats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dzone {
+  border: 3px dashed var(--line-2); border-radius: var(--r-md);
+  background: var(--surface-2); padding: 10px; min-height: 120px;
+  transition: all .2s var(--ease-soft);
+}
+.dzone__name {
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  color: var(--ink); text-align: center; margin-bottom: 8px;
+  background: linear-gradient(180deg,#FFD75E,var(--sun)); color:#7a4a12;
+  border-radius: var(--r-pill); padding: 5px 10px; border: 2px solid #fff;
+  box-shadow: 0 2px 0 var(--sun-deep);
+}
+.dzone__body { display: flex; flex-direction: column; gap: 8px; min-height: 56px; }
+.dzone.is-over  { border-color: var(--sky); background: #eaf6ff; transform: scale(1.03); }
+.dzone.flash-ok  { border-color: var(--mint); background: #e9fbf3; }
+.dzone.flash-bad { border-color: var(--coral); background: #ffeef3; animation: gWiggle .4s var(--ease-soft); }
+
+/* flujo (secuencia) */
+.diagram__flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+.dslot-wrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 118px; }
+.dzone--slot { flex: 1; min-height: 86px; position: relative; padding-top: 26px; }
+.dslot__n {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--coral); color: #fff; border: 2px solid #fff;
+  font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  display: grid; place-items: center; box-shadow: 0 2px 0 var(--coral-deep);
+}
+.dflow-arrow { color: #fff; font-size: 22px; font-weight: 800; text-shadow: 0 2px 0 rgba(13,54,105,.4); }
+
+/* nodos */
+.dpool { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; min-height: 46px; }
+.dnode {
+  border: 3px solid #fff; border-radius: var(--r-md);
+  background: linear-gradient(180deg, #8fd3ff, var(--sky));
+  color: #0d3f66; font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  padding: 10px 14px; box-shadow: 0 4px 0 #3ba1dd;
+  cursor: grab; user-select: none;
+  transition: transform .16s var(--ease-bounce), opacity .2s;
+}
+.dnode:hover { transform: translateY(-3px) rotate(-1.5deg); }
+.dnode.is-sel { outline: 3px solid var(--sun); transform: scale(1.06); }
+.dnode.is-dragging { opacity: .35; }
+.dnode.is-locked {
+  background: linear-gradient(180deg, #7ee2a8, var(--mint));
+  color: #0c4d24; box-shadow: 0 3px 0 var(--mint-deep);
+  cursor: default; width: 100%;
+}
+.dnode.is-bad { animation: gWiggle .4s var(--ease-soft); }
+.dnode--ghost {
+  position: fixed; z-index: 90; pointer-events: none;
+  transform: translate(-50%, -50%) rotate(3deg) scale(1.08);
+  box-shadow: 0 14px 30px rgba(9,48,97,.4);
+}

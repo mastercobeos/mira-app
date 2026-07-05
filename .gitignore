@@ -1,0 +1,17 @@
+# sistema
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# logs
+*.log
+logs/
+
+# respaldos de sprites (pesados, no necesarios en el repo)
+avatars/_raw/
+avatars/_prev/
+avatars/_prevhr/
+
+# dependencias (no hay, pero por si acaso)
+node_modules/
+.vercel

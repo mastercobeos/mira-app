@@ -1,0 +1,113 @@
+/* ============================================================
+   MIRA · Avatar (retrato de MEDIO CUERPO) + burbuja de diálogo
+   Regla: la muñeca SOLO se ve de la cintura para arriba.
+   Se logra con un marco de proporción fija + SVG a mayor escala
+   anclado arriba + máscara con degradado suave en la base.
+   ============================================================ */
+
+.mira {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; user-select: none;
+}
+
+/* — Retrato SIN contenedor: solo la muñeca (sprite limpio) flotando — */
+.mira__portrait {
+  position: relative;
+  width: clamp(190px, 28vw, 320px);
+  aspect-ratio: 1 / 1;               /* reserva espacio; NO recorta ni enmarca */
+  transition: transform .4s var(--ease-bounce);
+}
+
+/* El sprite (busto limpio). Dos capas superpuestas → cross-fade. */
+.mira__art {
+  position: absolute;
+  left: 50%;
+  bottom: 0;                         /* apoyado abajo, cara arriba-centro */
+  top: auto;
+  height: 100%;                      /* la muñeca completa, sin recortes */
+  width: auto;
+  max-width: none;                   /* anula el max-width:100% global */
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  opacity: 0;                        /* capa oculta por defecto */
+  filter: drop-shadow(0 8px 14px rgba(91,63,214,.18));
+  transition: opacity .5s var(--ease-soft);
+  pointer-events: none;
+}
+.mira__art.is-on { opacity: 1; }
+/* Ajuste fino por rol (el birrete de la profe ocupa un poco más de alto) */
+.mira[data-role="teacher"] .mira__art { height: 104%; }
+.mira[data-role="learner"] .mira__art { height: 100%; }
+
+/* Flote suave permanente (en el contenedor externo, para no chocar con el rebote) */
+.mira { animation: miraFloat 4s var(--ease-soft) infinite; }
+/* Rebote al cambiar de expresión (en el marco) */
+.mira__portrait.react { animation: miraCheer .55s var(--ease-bounce); }
+
+@keyframes miraFloat { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-7px); } }
+@keyframes miraCheer { 0%{ transform: scale(1); } 45%{ transform: scale(1.06); } 100%{ transform: scale(1); } }
+
+/* Sin contenedor: no hay sombra-piso (la muñeca lleva su propia drop-shadow) */
+.mira__floor { display: none; }
+
+/* Etiqueta de estado bajo el retrato */
+.mira__mood {
+  text-align: center;
+}
+.mira__mood-label { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); text-shadow: 0 2px 0 rgba(13,54,105,.3); }
+.mira__mood-value { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--sun); text-shadow: 0 2px 0 rgba(13,54,105,.4); }
+
+/* — Burbuja de diálogo — */
+.bubble {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  padding: 18px 22px;
+  font-size: clamp(16px, 2.3vw, 20px);
+  line-height: 1.4;
+  color: var(--ink);
+  max-width: 42ch;
+  animation: bubblePop .4s var(--ease-bounce) both;
+}
+.bubble--audio::before {
+  content: "🔊";
+  position: absolute; top: -12px; right: 16px;
+  font-size: 20px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.12));
+}
+/* pico apuntando hacia arriba (a MIRA) */
+.bubble::after {
+  content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  border: 12px solid transparent; border-bottom-color: var(--surface); border-top: 0;
+  filter: drop-shadow(0 -2px 1px rgba(91,63,214,.05));
+}
+.bubble.left::after { left: 40px; transform: none; }
+@keyframes bubblePop {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* cursor de streaming */
+.bubble .caret {
+  display: inline-block; width: 2px; height: 1.05em;
+  background: var(--violet); margin-left: 2px; vertical-align: -2px;
+  animation: caretBlink 1s steps(2) infinite;
+}
+@keyframes caretBlink { 50% { opacity: 0; } }
+
+/* puntos "escribiendo" */
+.typing { display: inline-flex; gap: 5px; padding: 4px 2px; }
+.typing i { width: 8px; height: 8px; border-radius: 50%; background: var(--violet-soft); animation: typingDot 1.1s var(--ease-soft) infinite; }
+.typing i:nth-child(2){ animation-delay: .15s; }
+.typing i:nth-child(3){ animation-delay: .3s; }
+@keyframes typingDot { 0%,100%{ transform: translateY(0); opacity:.5; } 50%{ transform: translateY(-5px); opacity:1; } }
+
+/* Confeti */
+.confetti-piece {
+  position: fixed; top: -12px; width: 10px; height: 14px; z-index: 60;
+  border-radius: 2px; pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(105vh) rotate(720deg); opacity: .9; }
+}

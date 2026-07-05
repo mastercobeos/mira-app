@@ -1,0 +1,67 @@
+/* ============================================================
+   MIRA · Design tokens — TEMA JUEGO "plastilina"
+   Ref: ideaparatema.jpeg → azul vivo + rojo + amarillo clay,
+   elementos flotantes con carita, botones gorditos 3D, stickers.
+   ============================================================ */
+
+:root {
+  /* — Acentos clay — */
+  --violet:      #7C5BFF;  /* acento MIRA (la M de su suéter) */
+  --violet-deep: #5b3fd6;
+  --violet-soft: #b9a6ff;
+  --sky:         #6ECBFF;
+  --mint:        #4ECB71;
+  --mint-deep:   #379e53;
+  --sun:         #FFC93C;
+  --sun-deep:    #E89B2E;
+  --coral:       #F4504B;
+  --coral-deep:  #C93732;
+  --grape:       #C58BFF;
+
+  /* — Fondos — */
+  --bg:        #1E88F0;   /* azul vivo de juego (dominante, como la ref) */
+  --bg-deep:   #146BC7;
+  --surface:   #ffffff;
+  --surface-2: #F4F9FF;
+  --chalk:     #2f5d4f;   /* pizarrón verde */
+  --chalk-2:   #294f43;
+
+  /* — Tinta / texto — */
+  --ink:      #23355C;
+  --ink-soft: #46608F;
+  --ink-mute: #7d92b8;
+  --on-violet:#ffffff;
+  --on-blue:  #ffffff;
+
+  /* — Líneas / bordes — */
+  --line:      #dfeaff;
+  --line-2:    #c8dcff;
+
+  /* — Sombras clay (borde sólido abajo + ambiente) — */
+  --sh-sm: 0 3px 0 rgba(13,54,105,.28), 0 8px 16px rgba(9,48,97,.18);
+  --sh-md: 0 5px 0 rgba(13,54,105,.30), 0 14px 26px rgba(9,48,97,.22);
+  --sh-lg: 0 8px 0 rgba(13,54,105,.26), 0 20px 44px rgba(9,48,97,.30);
+  --sh-card: 0 6px 0 rgba(13,54,105,.16), 0 16px 34px rgba(9,48,97,.22);
+
+  /* — Radios — */
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 30px;
+  --r-pill: 999px;
+
+  /* — Tipos — */
+  --font-display: 'Fredoka', 'Baloo 2', system-ui, sans-serif;
+  --font-body:    'Nunito', system-ui, sans-serif;
+
+  /* — Ritmo — */
+  --space: 8px;
+  --stage-max: 1080px;
+
+  /* — Motion — */
+  --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+  --ease-soft:   cubic-bezier(.4,0,.2,1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

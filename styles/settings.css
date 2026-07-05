@@ -1,0 +1,32 @@
+/* ============================================================
+   MIRA · Settings — modal del cerebro (clave de Gemini)
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(13, 54, 105, .55);
+  display: grid; place-items: center;
+  padding: 18px;
+  animation: screenIn .25s var(--ease-soft) both;
+}
+.modal { position: relative; width: 100%; max-width: 520px; }
+.modal__close {
+  position: absolute; top: 12px; right: 12px;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--line-2); background: var(--surface-2);
+  font-weight: 800; color: var(--ink-soft);
+}
+.modal__title { font-family: var(--font-display); font-size: 24px; margin: 0 0 8px; color: var(--ink); }
+.modal__lead { margin: 0 0 10px; color: var(--ink-soft); font-weight: 600; }
+.modal__steps { margin: 0 0 14px; padding-left: 20px; color: var(--ink-soft); }
+.modal__steps li { margin: 6px 0; }
+.modal__steps a { color: var(--violet); font-weight: 800; }
+.modal__row { margin-bottom: 12px; }
+.modal__row input {
+  width: 100%; border: 2px solid var(--line-2); border-radius: var(--r-md);
+  padding: 13px 16px; font-family: var(--font-body); font-size: 15px; color: var(--ink);
+  outline: none;
+}
+.modal__row input:focus { border-color: var(--violet-soft); }
+.modal__status { font-size: 14px; font-weight: 700; color: var(--ink-soft); min-height: 20px; }
+.modal__note { font-size: 12px; color: var(--ink-mute); margin: 12px 0 0; }
