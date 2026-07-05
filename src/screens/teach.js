@@ -27,25 +27,24 @@ export function teach(app, screen) {
   const controls = () => screen.querySelector('#controls');
   const tag = (t) => screen.querySelector('#beatTag').textContent = t;
 
-  // ---- Beat 6: acepta rol + avisa cambio ----
-  (async function beatAccept() {
+  /* ⚡ PREFETCH en cadena desde el arranque de la clase:
+     mientras el niño lee la bienvenida y juega el reto 1, los retos
+     2 y 3 ya se están generando → aparecen al instante al llegar. */
+  const pre = {};
+  pre.board = fetchBoard(state.topic).catch(() => null);
+  pre.diagram = pre.board.then(() => fetchDiagram(state.topic)).catch(() => null);
+  pre.games = pre.diagram.then(() => fetchGames(state.topic, 3)).catch(() => []);
+
+  // ---- Beat 6+7 fusionados: acepta rol + avisa cambio + contexto (UNA llamada) ----
+  (async function beatIntro() {
     tag('¡Empecemos! 🎓');
     setMood(screen, 'excited');
-    const txt = await streamBubble(say(),
-      `${KID_STYLE}\nEres la PROFESORA de "${state.topic}". En 2 frases: acepta el rol con alegría y AVISA que al final de la sesión cambiarán de roles (tú le enseñarás a ella). No expliques el tema todavía.`);
-    speak(txt); pushTurn('mira', txt || '');
-    control([{ label: 'Empecemos ✨', cls: 'btn--primary', on: beatContext }]);
-  })();
-
-  // ---- Beat 7: contexto rapidísimo → directo al primer reto ----
-  async function beatContext() {
-    tag('Reto 1 de 3 🖍️'); setMood(screen, 'happy'); content().innerHTML = ''; controls().innerHTML = '';
     const base = state.base === 'yes' ? 'El estudiante ya tiene algo de base.' : 'El estudiante empieza desde cero.';
     const txt = await streamBubble(say(),
-      `${KID_STYLE}\nEn UNA sola frase emocionante di qué van a descubrir sobre "${state.topic}". ${base} Termina con "¡Vamos!"`);
+      `${KID_STYLE}\nEres la PROFESORA de "${state.topic}". En 3 frases MÁXIMO: (1) acepta el rol con alegría, (2) avisa que al final cambiarán de roles (el estudiante te enseñará a ti), (3) di en una frase emocionante qué van a descubrir. ${base} No expliques el tema todavía.`);
     speak(txt); pushTurn('mira', txt || ''); bumpProgress(10);
-    setTimeout(beatBoard, 1200); // sin botón: la clase fluye sola al primer reto
-  }
+    control([{ label: '¡Al primer reto! 🎮', cls: 'btn--primary', on: beatBoard }]);
+  })();
 
   // ---- RETO 1: pizarra mágica (el niño completa los huecos) ----
   async function beatBoard() {
@@ -54,7 +53,7 @@ export function teach(app, screen) {
     speak('¡Reto uno! Completa mi pizarra mágica');
     content().innerHTML = thinkingCard();
     controls().innerHTML = '';
-    const data = await fetchBoard(state.topic);
+    const data = await pre.board;
     if (!data) { beatDiagram(); return; }
     setMood(screen, 'curious');
     const mira = { mood: m => setMood(screen, m) };
@@ -75,7 +74,7 @@ export function teach(app, screen) {
     speak('¡Reto dos! Arrastra cada nodo a su lugar');
     content().innerHTML = thinkingCard();
     controls().innerHTML = '';
-    const data = await fetchDiagram(state.topic);
+    const data = await pre.diagram;
     if (!data) { beatGames(); return; }
     setMood(screen, 'curious');
     const mira = { mood: m => setMood(screen, m) };
@@ -96,7 +95,7 @@ export function teach(app, screen) {
     speak('¡Reto final! Tres minijuegos');
     content().innerHTML = `<div class="card" style="display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> preparando los juegos…</div>`;
     controls().innerHTML = '';
-    const games = await fetchGames(state.topic, 3);
+    const games = (await pre.games) || [];
     if (!games.length) { beatCheck(); return; } // sin juegos: seguir el flujo
     const mira = { mood: m => setMood(screen, m) };
     playGames(content(), games, mira, (hits) => {

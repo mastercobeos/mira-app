@@ -12,6 +12,7 @@ export function learner(app, screen) {
   state.role = 'learner';
   let explanation = '';   // lo que el estudiante le explica a MIRA
   let task = '';          // lo que MIRA pide resolver/entender
+  const pre = {};         // ⚡ prefetch de los juegos (se generan mientras el niño lee)
 
   screen.innerHTML = `
     <div class="act">
@@ -134,6 +135,9 @@ export function learner(app, screen) {
         `${KID_STYLE}\nEres MIRA aprendiz. El estudiante te explicó "${task}" así: "${text}". Agradece en 1-2 frases y muestra que lo estás entendiendo. No resuelvas todavía.`);
     }
     speak(reply); pushTurn('mira', reply || '');
+    // ⚡ PREFETCH: los 2 juegos se generan YA, mientras el niño lee y decide
+    pre.judge = fetchJudge(state.topic, task, explanation).catch(() => null);
+    pre.steps = pre.judge.then(() => fetchMiraSteps(state.topic, task, explanation)).catch(() => null);
     tag('¿Algo más? 🤔');
     control([
       { label: '➕ Sí, explicar más', cls: 'btn--ghost', on: () => methods16() },
@@ -149,7 +153,7 @@ export function learner(app, screen) {
     speak('Voy a repetir lo que entendí. ¡Atrápame si me equivoco!');
     content().innerHTML = thinkingCard('recordando…');
     controls().innerHTML = '';
-    const data = await fetchJudge(state.topic, task, explanation);
+    const data = pre.judge ? await pre.judge : await fetchJudge(state.topic, task, explanation);
     const mira = { mood: m => setMood(screen, m) };
     setMood(screen, 'curious');
     renderJudgeGame(content(), data, mira, (hits, total) => {
@@ -171,7 +175,7 @@ export function learner(app, screen) {
     speak('¡Se me revolvió! Ordena mis pasos');
     content().innerHTML = thinkingCard('escribiendo mis pasos…');
     controls().innerHTML = '';
-    const data = await fetchMiraSteps(state.topic, task, explanation);
+    const data = pre.steps ? await pre.steps : await fetchMiraSteps(state.topic, task, explanation);
     const pasos = (data?.pasos || []).map(String).slice(0, 5);
     if (pasos.length < 3) { recap20(); return; }
     const mira = { mood: m => setMood(screen, m) };
