@@ -224,6 +224,81 @@ function wireDragSort(host, cfg, mira, onDone) {
   });
 }
 
+/* ========= JUEGO DEL APRENDIZ: "¿Lo entendí bien?" =========
+   MIRA repite lo aprendido con errores plantados; el niño la
+   juzga afirmación por afirmación (✅ bien dicho / ❌ error). */
+
+export async function fetchJudge(topic, task, explanation) {
+  return askJSON(
+    `${KID_STYLE}
+Eres MIRA APRENDIZ. El estudiante te explicó "${task}" sobre "${topic}" así: "${explanation}".
+Juego "¿Lo entendí bien?": vas a repetir lo aprendido en 4 afirmaciones cortas, pero MEZCLA 2 verdaderas y 2 FALSAS (con errores creíbles de principiante), en orden aleatorio.
+Devuelve SOLO JSON:
+{"afirmaciones":[{"texto":"afirmación corta en primera persona","verdadera":true,"nota":"1 frase: por qué / la corrección"},
+ {"texto":"...","verdadera":false,"nota":"..."} ]}
+Textos de máx 12 palabras. Sin markdown.
+Contexto:\n${contextText(8)}`);
+}
+
+export function renderJudgeGame(host, data, mira, onDone) {
+  const items = (data?.afirmaciones || []).filter(a => a && a.texto).slice(0, 4);
+  if (items.length < 2) { onDone(0, 0); return; }
+  let idx = 0, hits = 0;
+
+  const render = () => {
+    const a = items[idx];
+    host.innerHTML = `
+      <div class="game">
+        <div class="game__head">
+          <span class="game__round">Afirmación ${idx + 1} de ${items.length}</span>
+          <span class="game__type">🕵️ ¿Lo dije bien?</span>
+        </div>
+        <div class="game__q">“${escapeHTML(String(a.texto))}”</div>
+        <div class="game__opts game__opts--row">
+          <button class="gopt" data-v="true"  style="flex:1;justify-content:center;">✅ ¡Lo dijiste bien!</button>
+          <button class="gopt" data-v="false" style="flex:1;justify-content:center;">❌ Te equivocaste</button>
+        </div>
+        <div class="game__fb"></div>
+      </div>`;
+    const fb = host.querySelector('.game__fb');
+    host.querySelectorAll('.gopt').forEach(b => b.addEventListener('click', () => {
+      if (host.querySelector('.game .btn')) return; // ya respondió
+      const judged = b.dataset.v === 'true';
+      const truth = a.verdadera === true || a.verdadera === 'true';
+      const right = judged === truth;
+      host.querySelectorAll('.gopt').forEach(x => { if (x !== b) x.classList.add('is-off'); });
+      if (right) {
+        hits++; b.classList.add('is-right'); sfx.ding();
+        mira.mood(truth ? 'happy' : 'surprised'); // la atrapaste en el error → sorprendida
+        fb.className = 'game__fb ok';
+        fb.textContent = (truth ? '¡Sí, eso lo aprendí bien! 😊 ' : '¡Me atrapaste! 😅 ') + (a.nota || '');
+      } else {
+        b.classList.add('is-wrong'); sfx.buzz();
+        mira.mood('sad'); setTimeout(() => mira.mood('encouraging'), 1400);
+        fb.className = 'game__fb bad';
+        fb.textContent = (truth ? 'Esa sí era cierta 🙂 ' : '¡Ojo! Ahí me había equivocado 🙈 ') + (a.nota || '');
+      }
+      const btn = document.createElement('button');
+      btn.className = 'btn btn--primary'; btn.style.marginTop = '12px';
+      btn.textContent = idx + 1 < items.length ? 'Siguiente →' : '¡Listo! 🏁';
+      btn.addEventListener('click', () => { idx++; idx < items.length ? render() : onDone(hits, items.length); });
+      host.querySelector('.game').appendChild(btn);
+      btn.focus();
+    }));
+  };
+  render();
+}
+
+/* Pasos de MIRA para el juego "Ordena mis ideas" (frame 18 gamificado). */
+export async function fetchMiraSteps(topic, task, explanation) {
+  return askJSON(
+    `${KID_STYLE}
+Eres MIRA aprendiz. Con lo que el estudiante te enseñó sobre "${task}" ("${explanation}"), describe cómo lo resolverías/explicarías TÚ en 4 pasos cortos EN ORDEN correcto.
+Devuelve SOLO JSON: {"titulo":"Ordena mis pasos","pasos":["primer paso","segundo","tercero","cuarto"]}
+Pasos de máx 6 palabras. Sin markdown.
+Contexto:\n${contextText(8)}`);
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }

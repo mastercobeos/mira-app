@@ -4,7 +4,9 @@
 import { state, contextText, pushTurn, bumpProgress, addStar } from '../state.js';
 import { KID_STYLE, ask, askJSON, askImage } from '../engine.js';
 import { miraPortrait, bubble, setMood, streamBubble, speak, escapeHTML, confetti } from '../mira.js';
-import { starsChipHTML } from '../games.js';
+import { starsChipHTML, popStar } from '../games.js';
+import { fetchJudge, renderJudgeGame, fetchMiraSteps, renderDiagramGame } from '../activities.js';
+import { sfx } from '../sfx.js';
 
 export function learner(app, screen) {
   state.role = 'learner';
@@ -135,40 +137,56 @@ export function learner(app, screen) {
     tag('¿Algo más? 🤔');
     control([
       { label: '➕ Sí, explicar más', cls: 'btn--ghost', on: () => methods16() },
-      { label: '✅ No, ya está', cls: 'btn--primary', on: demonstrate18 },
+      { label: '✅ No, ya está', cls: 'btn--primary', on: gameJudge },
     ]);
   }
 
-  // Frame 18 — MIRA demuestra lo que entendió (paso a paso)
-  async function demonstrate18() {
-    tag('MIRA lo intenta ✍️'); setMood(screen, 'thinking');
-    say().innerHTML = 'Déjame ver si lo entendí… ✍️';
-    content().innerHTML = `<div class="card" style="display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> pensando…</div>`;
+  // RETO A (frames 18-19 gamificados) — "¿Lo entendí bien?":
+  // MIRA repite lo aprendido CON errores plantados y el niño la juzga.
+  async function gameJudge() {
+    tag('Reto · ¿Lo dije bien? 🕵️'); setMood(screen, 'thinking');
+    say().innerHTML = '¡Voy a repetir lo que entendí! Si me equivoco en algo… ¡atrápame! 🕵️';
+    speak('Voy a repetir lo que entendí. ¡Atrápame si me equivoco!');
+    content().innerHTML = thinkingCard('recordando…');
     controls().innerHTML = '';
-    const data = await askJSON(
-      `${KID_STYLE}\nEres MIRA aprendiz. El estudiante te ayudó con "${task}". Con lo que aprendiste, DEMUESTRA lo que entendiste paso a paso.\nDevuelve SOLO JSON: {"intro":"1 frase","pasos":["paso 1","paso 2","paso 3"],"final":"resultado o conclusión corta"}\n2 a 4 pasos, muy cortos. Sin markdown.\nExplicación del estudiante: "${explanation}"\nContexto:\n${contextText(8)}`);
-    const pasos = (data?.pasos || []).slice(0, 5);
-    content().innerHTML = `
-      <div class="solution">
-        ${pasos.map((p, i) => `<div class="solution__step is-tappable" data-step="${i}" style="animation-delay:${.2 * i}s" title="Tócalo si está mal">${escapeHTML(p)}</div>`).join('')}
-        ${data?.final ? `<div class="solution__step final" style="animation-delay:${.2 * pasos.length}s">${escapeHTML(data.final)}</div>` : ''}
-      </div>`;
-    const intro = (data?.intro || '¿Está correcto lo que hice?') + ' Si un paso está mal, ¡tócalo! 👆';
-    say().innerHTML = escapeHTML(intro); speak(intro); setMood(screen, 'curious'); bumpProgress(10);
-    // Frame 19 — ¿está correcto? (interactivo: tocar el paso equivocado)
-    tag('¿Está correcto? 🤔');
-    content().querySelectorAll('.is-tappable').forEach(el =>
-      el.addEventListener('click', () => {
-        el.classList.add('is-marked');
-        setMood(screen, 'surprised');
-        say().innerHTML = `¡Ups! 😳 ¿Ese paso está mal? Explícame cómo corregirlo, porfa 🙏`;
-        speak('¿Ese paso está mal? Explícame cómo corregirlo');
-        setTimeout(() => setMood(screen, 'sad'), 1500);
-        methods16();
-      }));
-    control([
-      { label: '✅ Sí, está perfecto', cls: 'btn--mint', on: recap20 },
-    ]);
+    const data = await fetchJudge(state.topic, task, explanation);
+    const mira = { mood: m => setMood(screen, m) };
+    setMood(screen, 'curious');
+    renderJudgeGame(content(), data, mira, (hits, total) => {
+      if (!total) { gameOrder(); return; }
+      popStar(content().firstElementChild || content());
+      bumpProgress(10); sfx.whoosh();
+      const msg = hits === total ? `¡Me atrapaste en todo! ${hits}/${total} 🤩 Eres una gran profe` : `¡Buen ojo! Ya corregí mis ideas 💪`;
+      say().innerHTML = escapeHTML(msg); speak(msg);
+      setMood(screen, hits === total ? 'celebratory' : 'encouraging');
+      setTimeout(gameOrder, 1500);
+    });
+  }
+
+  // RETO B (frame 18) — "Ordena mis ideas": la demostración de MIRA
+  // llega revuelta y el niño la arma arrastrando los nodos.
+  async function gameOrder() {
+    tag('Reto · Ordena mis ideas 🔗'); setMood(screen, 'idea');
+    say().innerHTML = 'Así lo resolvería yo… ¡pero se me revolvió! Ordena mis pasos 🔗';
+    speak('¡Se me revolvió! Ordena mis pasos');
+    content().innerHTML = thinkingCard('escribiendo mis pasos…');
+    controls().innerHTML = '';
+    const data = await fetchMiraSteps(state.topic, task, explanation);
+    const pasos = (data?.pasos || []).map(String).slice(0, 5);
+    if (pasos.length < 3) { recap20(); return; }
+    const mira = { mood: m => setMood(screen, m) };
+    setMood(screen, 'curious');
+    renderDiagramGame(content(), { tipo: 'flujo', titulo: data?.titulo || 'Ordena mis pasos', pasos }, mira, (perfect) => {
+      popStar(content().firstElementChild || content());
+      bumpProgress(10); sfx.whoosh();
+      const msg = perfect ? '¡PERFECTO! Ahora sí me quedó clarísimo 🤯' : '¡Eso es! Ya me quedó claro 💜';
+      say().innerHTML = escapeHTML(msg); speak(msg);
+      setTimeout(recap20, 1500);
+    });
+  }
+
+  function thinkingCard(txt = 'pensando…') {
+    return `<div class="card" style="display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> ${txt}</div>`;
   }
 
   // Frame 20 — recap: ¡Yay! Hoy aprendí…
