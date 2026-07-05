@@ -1,0 +1,6 @@
+# server.js es SOLO para correr MIRA localmente (claude -p en tu PC).
+# En Vercel el sitio es 100% estático; si server.js se sube, Vercel lo
+# detecta como servidor Node y lo ejecuta como función → rompe el deploy.
+server.js
+iniciar.bat
+logs/
