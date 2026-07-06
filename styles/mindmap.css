@@ -1,0 +1,227 @@
+/* ============================================================
+   MIRA · Mindmap — pizarra de ideas: organizadores visuales
+   interactivos (mental/conceptual/flujo) con nodos clay
+   arrastrables, aristas SVG, crayón y visión de MIRA.
+   ============================================================ */
+
+/* Columna de MIRA más angosta para dar aire a la pizarra. */
+.act--map { grid-template-columns: minmax(170px, 240px) 1fr; align-items: start; }
+
+/* ============================================================
+   Layout de 3 zonas: MIRA (izq) · pizarrón GRANDE (centro) · chat (der).
+   El pizarrón aprovecha más ancho de pantalla en desktop (.stage--wide).
+   ============================================================ */
+.stage--wide { max-width: 1560px; }
+
+.board3 {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 440px minmax(0, 1fr) 300px;
+  gap: clamp(12px, 1.5vw, 22px);
+  align-items: start;
+}
+.board3__mira { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.board3__mira .mira__portrait { width: 430px; max-width: 100%; }   /* muñeca grande a la izquierda */
+
+/* Pantallas medianas: muñeca más moderada para no comerse el pizarrón. */
+@media (max-width: 1360px) and (min-width: 1001px) {
+  .board3 { grid-template-columns: 300px minmax(0, 1fr) 290px; }
+  .board3__mira .mira__portrait { width: 290px; }
+}
+.board3__mira .chip--role { transform: rotate(-1.5deg); }
+
+.board3__center { min-width: 0; display: flex; flex-direction: column; }
+.board3__topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.board3__topbar .mmap-tabs { margin-bottom: 10px; }
+.board3__topic { color: rgba(255,255,255,.92); font-family: var(--font-display); font-weight: 700; font-size: 13px; }
+.board3__host { width: 100%; }
+.board3__controls { margin-top: 14px; }
+
+/* — Chat con MIRA (derecha) — */
+.board3__chat {
+  display: flex; flex-direction: column;
+  height: min(680px, 82vh);
+  background: var(--surface); border: 3px solid #fff;
+  border-radius: var(--r-lg); box-shadow: var(--sh-card); overflow: hidden;
+}
+.chat__head {
+  font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+}
+.chat__log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.chat__msg { font-size: 14px; line-height: 1.42; padding: 9px 13px; border-radius: var(--r-md); max-width: 90%; word-wrap: break-word; }
+.chat__msg--mira { background: #f3efff; color: var(--ink); align-self: flex-start; border-bottom-left-radius: 5px; }
+.chat__msg--kid {
+  background: linear-gradient(180deg, #FFD75E, var(--sun)); color: #7a4a12;
+  align-self: flex-end; border-bottom-right-radius: 5px; font-weight: 700;
+}
+.chat__field { display: flex; gap: 8px; padding: 10px; background: var(--surface); border-top: 1px solid var(--line); }
+.chat__field input {
+  flex: 1; min-width: 0; border: 2px solid var(--line-2); border-radius: var(--r-pill);
+  padding: 10px 14px; font-family: var(--font-body); font-size: 14px; color: var(--ink); outline: none;
+  transition: border-color .2s;
+}
+.chat__field input:focus { border-color: var(--violet-soft); }
+.chat__send {
+  width: 42px; height: 42px; flex: none; border: 0; border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--violet-deep));
+  color: #fff; font-size: 18px; display: grid; place-items: center;
+  transition: transform .16s var(--ease-bounce);
+}
+.chat__send:hover { transform: translateY(-2px); }
+
+/* Apila en pantallas medianas/chicas: MIRA, pizarrón y chat en columna. */
+@media (max-width: 1000px) {
+  .board3 { grid-template-columns: 1fr; }
+  .board3__mira { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .board3__mira .mira__portrait { width: clamp(150px, 30vw, 200px); }
+  .board3__mira .bubble { flex: 1; min-width: 220px; }
+  .board3__chat { height: 420px; }
+}
+
+/* — Pestañas de organizador — */
+.mmap-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.mtab {
+  border: 3px solid #fff; border-radius: var(--r-pill);
+  background: rgba(255,255,255,.16); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 13.5px;
+  padding: 8px 16px; cursor: pointer;
+  transition: transform .16s var(--ease-bounce), background .16s;
+}
+.mtab:hover { transform: translateY(-2px); }
+.mtab.is-on {
+  background: linear-gradient(180deg, #FFD75E, var(--sun));
+  color: #7a4a12; box-shadow: 0 3px 0 var(--sun-deep);
+}
+
+/* — Tarjeta de la pizarra — */
+.mmap {
+  width: 100%;
+  background: var(--surface);
+  border: 3px solid #fff; border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  padding: 12px 14px 6px;
+}
+.mmap__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 2px 2px 10px; }
+.mmap__title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(15px, 2.2vw, 19px); color: var(--ink);
+}
+.mmap__vp { position: relative; width: 100%; overflow: hidden; border-radius: var(--r-md); background: var(--surface-2); }
+.mmap__stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.mmap__hint { font-size: 12px; color: var(--ink-mute); font-weight: 700; padding: 8px 6px 6px; }
+
+/* — Herramientas (crayón / borrar / visión) — */
+.mmap__tools { display: flex; gap: 6px; }
+.tool {
+  border: 2px solid var(--line-2); border-radius: var(--r-pill);
+  background: var(--surface-2); color: var(--ink-soft);
+  font-family: var(--font-display); font-weight: 700; font-size: 12.5px;
+  padding: 6px 12px; cursor: pointer;
+  transition: transform .16s var(--ease-bounce), background .16s, color .16s;
+}
+.tool:hover { transform: translateY(-2px); }
+.tool.is-on {
+  background: linear-gradient(180deg, #9b7dff, var(--violet));
+  color: #fff; border-color: #fff; box-shadow: 0 3px 0 var(--violet-deep);
+}
+.tool--see { background: linear-gradient(180deg, #FFD75E, var(--sun)); color: #7a4a12; border-color: #fff; box-shadow: 0 3px 0 var(--sun-deep); }
+
+/* — Aristas — */
+.mmap__edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mmap__edge { fill: none; stroke-width: 3; stroke-linecap: round; opacity: .5; }
+.mmap__edge--branch { stroke-width: 5; opacity: .65; }
+.mmap__edge--mine { stroke-dasharray: 6 7; }
+.mmap__arrow { opacity: .85; }
+
+/* Etiqueta de enlace (mapa conceptual) sobre la arista. */
+.mlabel {
+  position: absolute; transform: translate(-50%, -50%);
+  background: #fff; color: var(--ink-soft);
+  font-family: var(--font-body); font-weight: 800; font-size: 11px;
+  border-radius: var(--r-pill); padding: 3px 10px;
+  box-shadow: 0 1px 4px rgba(9,48,97,.18);
+  pointer-events: none; white-space: nowrap; z-index: 1;
+}
+
+/* — Nodos — */
+.mnode {
+  position: absolute; transform: translate(-50%, -50%);
+  border: 3px solid #fff; border-radius: var(--r-md);
+  background: linear-gradient(180deg, var(--n-top, #8fd3ff), var(--n-bot, var(--sky)));
+  color: var(--n-ink, #0d3f66);
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  padding: 8px 12px; max-width: 190px; text-align: center;
+  box-shadow: 0 4px 0 var(--n-sh, #3ba1dd);
+  cursor: grab; user-select: none; touch-action: none;
+  transition: box-shadow .16s, outline-color .16s;
+  z-index: 2;
+}
+.mnode:active { cursor: grabbing; }
+.mnode--center {
+  font-size: 17px; padding: 12px 20px; border-radius: var(--r-lg);
+  background: linear-gradient(180deg, #9b7dff, var(--violet));
+  color: #fff; box-shadow: 0 5px 0 var(--violet-deep);
+  z-index: 3;
+}
+.mnode--leaf { font-size: 12.5px; font-weight: 600; padding: 6px 10px; z-index: 1; }
+.mnode--step { padding: 10px 16px 10px 20px; }
+.mnode--mine {
+  background: #fff; color: var(--violet-deep);
+  border: 3px dashed var(--violet-soft); box-shadow: 0 3px 0 #cbb8ff;
+}
+.mnode__emoji { font-size: 1.1em; }
+.mnode__n {
+  position: absolute; top: -12px; left: -10px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--coral); color: #fff; border: 2px solid #fff;
+  font-family: var(--font-display); font-weight: 800; font-size: 12px;
+  display: grid; place-items: center; box-shadow: 0 2px 0 var(--coral-deep);
+}
+
+.mnode.is-sel { outline: 4px solid var(--sun); outline-offset: 1px; z-index: 4; }
+.mnode.is-dragging { opacity: .88; z-index: 5; box-shadow: 0 10px 22px rgba(9,48,97,.35); }
+.mnode.is-new { animation: mnodePop .5s var(--ease-bounce); }
+.mnode.is-learned::after {
+  content: '⭐'; position: absolute; top: -12px; right: -10px;
+  font-size: 15px; filter: drop-shadow(0 2px 2px rgba(9,48,97,.35));
+  animation: mstarPop .5s var(--ease-bounce);
+}
+@keyframes mnodePop { 0% { transform: translate(-50%,-50%) scale(.4); } 60% { transform: translate(-50%,-50%) scale(1.15); } 100% { transform: translate(-50%,-50%) scale(1); } }
+@keyframes mstarPop { 0% { transform: scale(.3); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+/* — Crayón: canvas de tinta encima de los nodos — */
+.mmap__ink { position: absolute; inset: 0; z-index: 6; pointer-events: none; touch-action: none; }
+.mmap__stage.is-draw .mmap__ink { pointer-events: auto; cursor: crosshair; }
+.mmap__stage.is-draw .mnode { pointer-events: none; }
+
+/* — Barra de acciones del nodo seleccionado (sobre el fondo azul) — */
+.mmap-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  width: 100%; min-height: 58px; margin-top: 12px;
+  background: rgba(255,255,255,.14);
+  border: 2px dashed rgba(255,255,255,.5); border-radius: var(--r-md);
+  padding: 10px 14px;
+}
+.mmap-actions__tip { color: rgba(255,255,255,.92); font-weight: 700; font-size: 13.5px; }
+.mmap-actions__node {
+  background: #fff; color: var(--ink);
+  font-family: var(--font-display); font-weight: 700; font-size: 13.5px;
+  border-radius: var(--r-pill); padding: 7px 14px;
+  box-shadow: var(--sh-sm); max-width: 240px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mmap-actions .btn { padding: 9px 16px; font-size: 14px; }
+.field--map { flex: 1; min-width: 220px; max-width: 460px; padding: 4px 4px 4px 14px; }
+.field--map input { font-size: 15px; padding: 8px 0; }
+.field--map .field__send { width: 40px; height: 40px; font-size: 17px; }
+
+@media (max-width: 760px) {
+  /* vuelve a apilar (esta hoja carga después de screen.css y
+     .act--map pisaría el 1fr mobile de .act) */
+  .act--map { grid-template-columns: 1fr; }
+  .mmap { padding: 10px 10px 4px; }
+  .mmap__head { justify-content: center; }
+  .mmap-actions { justify-content: center; }
+  .mmap-tabs { justify-content: center; }
+}

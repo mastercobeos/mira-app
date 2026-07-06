@@ -1,11 +1,12 @@
-/* Frames 6-10 — MIRA PROFESORA:
-   6 acepta rol + avisa cambio · 7 contextualiza · 8 pizarrón ·
-   9 apoyo visual · 10 checkpoint (¿todo claro?). Luego → resumen. */
-import { state, pushTurn, contextText, bumpProgress } from '../state.js';
-import { KID_STYLE } from '../engine.js';
-import { miraPortrait, bubble, setMood, streamBubble, speak, escapeHTML } from '../mira.js';
+/* EL QUEST — los 3 retos de la clase (después del pizarrón de gráficos):
+   Reto 1 pizarra mágica · Reto 2 diagrama de nodos · Reto 3 minijuegos.
+   Los retos vienen prefetcheados desde el pizarrón (prefetch.js) para
+   aparecer al instante. Al terminar → resumen. */
+import { state, pushTurn, bumpProgress } from '../state.js';
+import { miraPortrait, bubble, setMood, speak, escapeHTML } from '../mira.js';
 import { fetchGames, playGames, starsChipHTML, popStar } from '../games.js';
 import { fetchBoard, renderBoardGame, fetchDiagram, renderDiagramGame } from '../activities.js';
+import { questPre } from '../prefetch.js';
 import { sfx } from '../sfx.js';
 
 export function teach(app, screen) {
@@ -15,7 +16,7 @@ export function teach(app, screen) {
       <div class="act__mira">${miraPortrait({ role: 'teacher', mood: 'happy' })}</div>
       <div class="act__body" style="width:100%;">
         <div class="chip chip--role" style="align-self:flex-start;">🎓 Rol: Profesora</div>
-        <div class="screen__eyebrow" id="beatTag">Clase sobre ${escapeHTML(state.topic)}</div>
+        <div class="screen__eyebrow" id="beatTag">Quest sobre ${escapeHTML(state.topic)}</div>
         ${bubble('', { left: true, id: 'say' })}
         <div id="content" style="width:100%;"></div>
         <div id="controls" class="choices"></div>
@@ -27,24 +28,19 @@ export function teach(app, screen) {
   const controls = () => screen.querySelector('#controls');
   const tag = (t) => screen.querySelector('#beatTag').textContent = t;
 
-  /* ⚡ PREFETCH en cadena desde el arranque de la clase:
-     mientras el niño lee la bienvenida y juega el reto 1, los retos
-     2 y 3 ya se están generando → aparecen al instante al llegar. */
+  /* ⚡ Retos ya prefetcheados en el pizarrón; si no (navegación directa),
+     los generamos aquí en cadena. */
   const pre = {};
-  pre.board = fetchBoard(state.topic).catch(() => null);
-  pre.diagram = pre.board.then(() => fetchDiagram(state.topic)).catch(() => null);
-  pre.games = pre.diagram.then(() => fetchGames(state.topic, 3)).catch(() => []);
+  if (questPre.board) {
+    pre.board = questPre.board; pre.diagram = questPre.diagram; pre.games = questPre.games;
+  } else {
+    pre.board = fetchBoard(state.topic).catch(() => null);
+    pre.diagram = pre.board.then(() => fetchDiagram(state.topic)).catch(() => null);
+    pre.games = pre.diagram.then(() => fetchGames(state.topic, 3)).catch(() => []);
+  }
 
-  // ---- Beat 6+7 fusionados: acepta rol + avisa cambio + contexto (UNA llamada) ----
-  (async function beatIntro() {
-    tag('¡Empecemos! 🎓');
-    setMood(screen, 'excited');
-    const base = state.base === 'yes' ? 'El estudiante ya tiene algo de base.' : 'El estudiante empieza desde cero.';
-    const txt = await streamBubble(say(),
-      `${KID_STYLE}\nEres la PROFESORA de "${state.topic}". En 3 frases MÁXIMO: (1) acepta el rol con alegría, (2) avisa que al final cambiarán de roles (el estudiante te enseñará a ti), (3) di en una frase emocionante qué van a descubrir. ${base} No expliques el tema todavía.`);
-    speak(txt); pushTurn('mira', txt || ''); bumpProgress(10);
-    control([{ label: '¡Al primer reto! 🎮', cls: 'btn--primary', on: beatBoard }]);
-  })();
+  // Arranca directo en el primer reto (la intro ya la dio en el pizarrón).
+  beatBoard();
 
   // ---- RETO 1: pizarra mágica (el niño completa los huecos) ----
   async function beatBoard() {
@@ -96,7 +92,7 @@ export function teach(app, screen) {
     content().innerHTML = `<div class="card" style="display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> preparando los juegos…</div>`;
     controls().innerHTML = '';
     const games = (await pre.games) || [];
-    if (!games.length) { beatCheck(); return; } // sin juegos: seguir el flujo
+    if (!games.length) { app.go('summary'); return; } // sin juegos: al resumen
     const mira = { mood: m => setMood(screen, m) };
     playGames(content(), games, mira, (hits) => {
       bumpProgress(20);
@@ -106,30 +102,8 @@ export function teach(app, screen) {
         : `¡Muy bien! Ganaste tus estrellas ⭐ ¡Sigamos!`;
       say().innerHTML = escapeHTML(msg); speak(msg);
       content().innerHTML = `<div style="display:flex;align-items:center;gap:12px;">${starsChipHTML()}</div>`;
-      control([{ label: 'Seguir ✅', cls: 'btn--primary', on: beatCheck }]);
+      control([{ label: '¡Terminamos! Al resumen ✅', cls: 'btn--primary', on: () => app.go('summary') }]);
     });
-  }
-
-  // ---- Beat 10: checkpoint ----
-  function beatCheck() {
-    tag('¿Todo claro? 🙂'); setMood(screen, 'happy'); content().innerHTML = '';
-    say().innerHTML = '¿Hasta aquí todo claro? 🙂';
-    speak('¿Hasta aquí todo claro?');
-    control([
-      { label: '✅ Sí, todo claro', cls: 'btn--mint', on: () => { bumpProgress(15); app.go('summary'); } },
-      { label: '🤔 Tengo dudas', cls: 'btn--ghost', on: () => explainAgain(beatCheck) },
-    ]);
-  }
-
-  // ---- Explicar de otra forma (disponible toda la sesión) ----
-  async function explainAgain(back) {
-    setMood(screen, 'surprised');                       // "¡oh! ¿no quedó claro?"
-    setTimeout(() => setMood(screen, 'thinking'), 1400); // …y se pone a pensar otra forma
-    controls().innerHTML = '';
-    const txt = await streamBubble(say(),
-      `${KID_STYLE}\nEl estudiante no entendió bien "${state.topic}". Explícalo de OTRA forma distinta (otra analogía o ejemplo más simple), en 2 frases.\nContexto:\n${contextText()}`);
-    speak(txt); pushTurn('mira', txt || '');
-    control([{ label: 'Ahora sí, seguir ✅', cls: 'btn--primary', on: back }]);
   }
 
   function control(list) {

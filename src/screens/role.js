@@ -31,7 +31,7 @@ export function role(app, screen) {
     b.addEventListener('click', () => {
       state.role = b.dataset.role; save();
       // Si eliges que TÚ eres la profe, MIRA arranca como aprendiz;
-      // si MIRA es la profe, va al acto de clase (que luego cambia de roles).
-      app.go(b.dataset.role === 'teacher' ? 'teach' : 'learner');
+      // si MIRA es la profe, va al PIZARRÓN de gráficos (y de ahí al quest).
+      app.go(b.dataset.role === 'teacher' ? 'mindmap' : 'learner');
     }));
 }

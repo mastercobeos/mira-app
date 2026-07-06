@@ -16,7 +16,13 @@
   <link rel="stylesheet" href="styles/visuals.css">
   <link rel="stylesheet" href="styles/games.css">
   <link rel="stylesheet" href="styles/activities.css">
+  <link rel="stylesheet" href="styles/mindmap.css">
   <link rel="stylesheet" href="styles/settings.css">
+  <link rel="stylesheet" href="styles/onboarding.css">
+  <link rel="stylesheet" href="styles/landing.css">
+  <link rel="stylesheet" href="styles/flashcards.css">
+  <link rel="stylesheet" href="styles/materials.css">
+  <link rel="stylesheet" href="styles/review.css">
 </head>
 <body>
   <!-- Decoración flotante estilo plastilina (ref: ideaparatema) -->
@@ -45,6 +51,8 @@
       <div class="steps" id="steps" aria-hidden="true"></div>
       <div class="topbar__spacer"></div>
       <span class="stars-chip" title="Tus estrellas">⭐ <span data-stars>0</span></span>
+      <button class="chip chip--icon" id="materialsBtn" title="Material de estudio · sube tus apuntes" style="cursor:pointer;">📎<span class="chip__badge" id="matCount" style="display:none;"></span></button>
+      <button class="chip chip--icon" id="helpBtn" title="¿Cómo funciona MIRA?" style="cursor:pointer;">❔</button>
       <button class="chip" id="setupBtn" title="Cerebro de MIRA (clave de Gemini)" style="cursor:pointer;">🧠</button>
       <button class="chip" id="restartBtn" title="Empezar de nuevo" style="cursor:pointer;">↻ Nueva</button>
     </header>

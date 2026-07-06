@@ -209,8 +209,7 @@ export function learner(app, screen) {
         <div style="margin-top:12px;">${starsChipHTML()}</div>
       </div>`;
     control([
-      { label: '🔁 Otra ronda', cls: 'btn--primary', on: () => app.restart() },
-      { label: '🏠 Terminar', cls: 'btn--ghost', on: () => app.restart() },
+      { label: '✨ ¿Y ahora qué? →', cls: 'btn--primary', on: () => app.go('ending') },
     ]);
   }
 

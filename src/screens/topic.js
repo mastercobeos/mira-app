@@ -1,5 +1,6 @@
 /* Frames 2-3 — ¿Qué quieres aprender? (escribir o subir archivo) → ratifica el tema. */
 import { state, save } from '../state.js';
+import { addFiles } from '../materials.js';
 import { miraPortrait, bubble, setMood, speak } from '../mira.js';
 
 const IDEAS = [
@@ -36,19 +37,21 @@ export function topic(app, screen) {
   screen.querySelectorAll('.idea').forEach(b =>
     b.addEventListener('click', () => { input.value = b.dataset.idea; input.focus(); }));
 
-  // archivo
-  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+  // archivo → se guarda como material de estudio (reutilizable toda la sesión)
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
   ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('hover'); }));
   ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('hover'); }));
-  dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
 
-  function handleFile(file) {
-    if (!file) return;
-    screen.querySelector('#dzText').innerHTML = `📎 <strong>${file.name}</strong>`;
-    const r = new FileReader();
-    r.onload = ev => { state.file = { name: file.name, data: ev.target.result, type: file.type }; save(); };
-    if (file.type.startsWith('image/')) r.readAsDataURL(file); else r.readAsText(file);
-    if (!input.value) input.value = file.name.replace(/\.[^.]+$/, '');
+  function handleFiles(files) {
+    if (!files || !files.length) return;
+    const first = files[0];
+    addFiles(files);
+    const n = files.length;
+    screen.querySelector('#dzText').innerHTML = n > 1
+      ? `📎 <strong>${n} archivos</strong> listos`
+      : `📎 <strong>${first.name}</strong>`;
+    if (!input.value) input.value = first.name.replace(/\.[^.]+$/, '');
   }
 
   const submit = () => {

@@ -1,0 +1,62 @@
+/* ============================================================
+   MIRA · Materiales — chip del topbar con badge + panel modal
+   ============================================================ */
+
+/* chips de solo-icono en el topbar */
+.chip--icon { position: relative; padding: 7px 11px; font-size: 15px; }
+.chip__badge {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  display: grid; place-items: center;
+  background: var(--coral); color: #fff;
+  border: 2px solid #fff; border-radius: var(--r-pill);
+  font-size: 11px; font-weight: 900; line-height: 1;
+}
+
+/* fondo del modal */
+.mat-back {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(9, 40, 84, .55);
+  display: grid; place-items: center; padding: 20px;
+  animation: matFade .2s ease;
+}
+@keyframes matFade { from { opacity: 0; } to { opacity: 1; } }
+
+.mat-panel {
+  width: min(520px, 100%); max-height: 86vh; overflow: auto;
+  background: var(--surface); border: 3px solid #fff;
+  border-radius: var(--r-lg); box-shadow: var(--sh-lg);
+  padding: 22px; animation: matPop .25s var(--ease-bounce);
+}
+@keyframes matPop { from { transform: translateY(14px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.mat-head { display: flex; align-items: center; justify-content: space-between; }
+.mat-head h3 { margin: 0; font-family: var(--font-display); color: var(--ink); font-size: 22px; }
+.mat-x {
+  width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: var(--surface-2); color: var(--ink-soft); font-size: 16px; font-weight: 900;
+}
+.mat-x:hover { background: var(--line); }
+.mat-hint { color: var(--ink-mute); font-size: 14px; margin: 8px 0 16px; }
+
+.mat-drop {
+  display: block; border: 3px dashed var(--line-2); border-radius: var(--r-md);
+  padding: 22px 16px; text-align: center; color: var(--ink-soft);
+  font-weight: 700; cursor: pointer; transition: all .2s; background: var(--surface-2);
+}
+.mat-drop:hover, .mat-drop.hover { border-color: var(--violet-soft); background: #f3efff; }
+.mat-drop strong { color: var(--violet); text-decoration: underline; }
+.mat-drop small { color: var(--ink-mute); font-weight: 600; }
+
+.mat-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.mat-empty { text-align: center; color: var(--ink-mute); font-weight: 700; padding: 14px; }
+.mat-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 10px 12px;
+}
+.mat-ic { font-size: 20px; }
+.mat-name { flex: 1; font-weight: 700; color: var(--ink); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mat-tag { font-size: 11px; font-weight: 800; color: var(--ink-mute); background: var(--line); padding: 3px 8px; border-radius: var(--r-pill); }
+.mat-del { border: 0; background: transparent; font-size: 16px; padding: 4px; border-radius: 8px; }
+.mat-del:hover { background: #ffe3e1; }

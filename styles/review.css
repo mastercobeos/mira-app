@@ -1,0 +1,66 @@
+/* ============================================================
+   MIRA · Review — pantallas de cierre (ending) e historial
+   ============================================================ */
+
+/* ---------- Ending: opciones al terminar ---------- */
+.end-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 560px; }
+.end-opt {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  text-align: left; padding: 16px 18px; border-radius: var(--r-md); border: 3px solid #fff;
+  transition: transform .16s var(--ease-bounce), filter .16s;
+}
+.end-opt:hover { transform: translateY(-3px) rotate(-1deg); filter: brightness(1.03); }
+.end-opt__ic { font-size: 26px; }
+.end-opt__t { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.end-opt__d { font-size: 12.5px; font-weight: 600; opacity: .85; }
+
+@media (max-width: 560px) { .end-grid { grid-template-columns: 1fr; } }
+
+/* ---------- History ---------- */
+.hist { width: 100%; display: flex; flex-direction: column; gap: 18px; }
+.hist__head { display: flex; align-items: center; gap: 20px; }
+.hist__mira { flex: none; }
+/* el retrato trae min-width 190px → lo achicamos para el encabezado */
+.hist__mira .mira__portrait { width: 128px; }
+.hist__mira .mira { gap: 0; }
+@media (max-width: 620px) { .hist__mira { display: none; } }
+
+.hist__tabs { display: flex; gap: 10px; }
+.hist__tab {
+  border: 3px solid #fff; border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .16); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 15px; padding: 10px 20px;
+  transition: all .18s var(--ease-bounce);
+}
+.hist__tab:hover { transform: translateY(-2px); }
+.hist__tab.is-on {
+  background: linear-gradient(180deg, #FFD75E, var(--sun)); color: #7a4a12;
+  box-shadow: 0 4px 0 var(--sun-deep);
+}
+
+.hist__list { display: flex; flex-direction: column; gap: 12px; }
+.hist__empty { text-align: center; color: var(--ink-mute); font-weight: 700; }
+.hist__card {
+  background: var(--surface); border: 3px solid #fff; border-radius: var(--r-md);
+  box-shadow: var(--sh-card); padding: 16px 18px;
+}
+.hist__card-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; background: transparent; border: 0; padding: 0; text-align: left;
+}
+.hist__toggle { cursor: pointer; }
+.hist__topic { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
+.hist__meta { font-size: 13px; font-weight: 700; color: var(--ink-mute); white-space: nowrap; }
+.hist__caret { display: inline-block; transition: transform .2s; }
+.hist__toggle.is-open .hist__caret { transform: rotate(180deg); }
+
+.hist__points { margin: 10px 0 0; padding-left: 20px; }
+.hist__points li { margin: 4px 0; font-size: 15px; color: var(--ink-soft); }
+.hist__none { color: var(--ink-mute); font-size: 14px; margin: 8px 0 0; }
+
+.hist__chat { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line-2); padding-top: 12px; }
+.hist__msg { font-size: 14px; line-height: 1.45; padding: 8px 12px; border-radius: var(--r-sm); max-width: 92%; }
+.hist__msg b { color: var(--ink); }
+.hist__msg--mira { background: #f3efff; align-self: flex-start; }
+.hist__msg--kid { background: var(--surface-2); align-self: flex-end; }
+.hist__msg--kid b { color: var(--violet-deep); }

@@ -28,13 +28,25 @@ export async function validateGeminiKey(key) {
   return true;
 }
 
+/* ---- 📎 Material de estudio (se antepone a TODOS los prompts) ----
+   La UI (panel de materiales) llama setStudyContext() al agregar/quitar
+   archivos; así cualquier pantalla que hable con el motor lo aprovecha
+   sin tener que tocar su prompt. */
+let _studyContext = '';
+export function setStudyContext(text) { _studyContext = (text || '').trim(); }
+function withStudy(prompt) {
+  if (!_studyContext) return prompt;
+  return `MATERIAL DE ESTUDIO que el estudiante subió (úsalo como referencia si viene al caso; si no aplica, ignóralo):\n"""\n${_studyContext}\n"""\n\n${prompt}`;
+}
+
 /* Estilo de MIRA para niños (13-17). Va en todos los prompts. */
 export const KID_STYLE = `Eres MIRA, una compañera de aprendizaje para chicos de 13 a 17 años.
 Hablas en español, cálida, cercana y divertida. Reglas de estilo:
 - Frases cortas y claras. Máximo 2-3 oraciones por turno.
 - Una sola idea por turno. Usa 1-2 emojis, nunca más.
 - Nada de markdown, asteriscos ni listas largas en el texto conversacional.
-- Termina, cuando toque, con una pregunta o mini reto.`;
+- Termina, cuando toque, con una pregunta o mini reto.
+- Trato amable pero NEUTRO y profesional: NUNCA uses apodos ni términos cariñosos ("mi amor", "amor", "cariño", "corazón", "mi vida", "bebé", "reina", "linda", etc.) ni un tono romántico o meloso. Diríjete al estudiante de "tú", como una buena maestra o compañera, sin motes.`;
 
 /* ---- transporte LOCAL (server.js → claude -p) ---- */
 async function streamLocal(prompt, onChunk) {
@@ -92,6 +104,7 @@ async function streamGemini(prompt, onChunk, extraParts = []) {
 
 /* Llama al motor activo y transmite el texto por onChunk(textoAcumulado). */
 export async function stream(prompt, onChunk) {
+  prompt = withStudy(prompt);
   if (engineMode() === 'gemini') return streamGemini(prompt, onChunk);
   try { return await streamLocal(prompt, onChunk); }
   catch (e) { if (needsSetup()) throw new Error('SETUP'); throw e; }

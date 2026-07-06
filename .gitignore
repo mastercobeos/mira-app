@@ -11,6 +11,7 @@ logs/
 avatars/_raw/
 avatars/_prev/
 avatars/_prevhr/
+avatars/_fix_backup/
 
 # dependencias (no hay, pero por si acaso)
 node_modules/
