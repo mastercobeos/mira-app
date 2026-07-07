@@ -102,7 +102,10 @@ export function teach(app, screen) {
         : `¡Muy bien! Ganaste tus estrellas ⭐ ¡Sigamos!`;
       say().innerHTML = escapeHTML(msg); speak(msg);
       content().innerHTML = `<div style="display:flex;align-items:center;gap:12px;">${starsChipHTML()}</div>`;
-      control([{ label: '¡Terminamos! Al resumen ✅', cls: 'btn--primary', on: () => app.go('summary') }]);
+      control([
+        { label: '📋 Ver mi resumen de lo aprendido', cls: 'btn--primary', on: () => app.go('summary') },
+        { label: '🏠 Volver al inicio', cls: 'btn--ghost', on: () => app.restart() },
+      ]);
     });
   }
 

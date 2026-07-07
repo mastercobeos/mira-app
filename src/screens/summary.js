@@ -31,26 +31,35 @@ export function summary(app, screen) {
     addBtn('Ver el resumen 📋', 'btn--primary', summary12);
   })();
 
-  // Frame 12 — Resumen de hoy (cuaderno)
+  // Frame 12 — Resumen de hoy (cuaderno COMPLETO: idea + explicación + dato)
   async function summary12() {
     tag('Resumen de hoy 📋'); setMood(screen, 'proud');
-    say().innerHTML = '¡Muy bien! Esto es lo que vimos hoy 📋';
-    content().innerHTML = `<div class="card" style="max-width:460px;display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> armando el resumen…</div>`;
+    say().innerHTML = '¡Muy bien! Esto es todo lo que aprendiste hoy 📋';
+    content().innerHTML = `<div class="card" style="max-width:460px;display:inline-flex;gap:10px;align-items:center;color:var(--ink-mute);"><span class="typing"><i></i><i></i><i></i></span> armando tu resumen…</div>`;
     controls().innerHTML = '';
     const data = await askJSON(
-      `${KID_STYLE}\nHaz un "Resumen de hoy" de lo que se vio sobre "${state.topic}".\nDevuelve SOLO JSON: {"puntos":["punto 1","punto 2","punto 3","punto 4"]}\n3 a 4 puntos, cada uno corto (máx 6 palabras). Sin markdown.\nContexto:\n${contextText(10)}`);
-    const puntos = (data?.puntos || []).slice(0, 5);
-    state.learned = puntos;
+      `${KID_STYLE}\nHaz el "Resumen de hoy" COMPLETO de la clase sobre "${state.topic}".\nDevuelve SOLO JSON: {"puntos":[{"t":"idea clave (máx 6 palabras)","d":"explicación clara de esa idea en 1-2 frases"}],"dato":"un dato curioso o tip útil del tema (1 frase)"}\n5 a 6 puntos que cubran TODO lo visto en la clase (conceptos, cómo funciona, ejemplos). Sin markdown.\nContexto:\n${contextText(14)}`);
+    const puntos = (data?.puntos || []).filter(p => p && (p.t || p.d)).slice(0, 7);
+    state.learned = puntos.map(p => String(p.t || p.d));
     content().innerHTML = `
-      <div class="notebook">
-        <h3>Resumen de hoy</h3>
+      <div class="notebook notebook--full">
+        <h3>Resumen de hoy · ${escapeHTML(state.topic)}</h3>
         <ul style="margin:0;padding:0;">
-          ${(puntos.length ? puntos : ['Lo esencial del tema']).map(p =>
-            `<li><span class="tick">✓</span> ${escapeHTML(p)}</li>`).join('')}
+          ${(puntos.length ? puntos : [{ t: 'Lo esencial del tema', d: '' }]).map(p => `
+            <li><span class="tick">✓</span>
+              <span class="notebook__pt">
+                <b>${escapeHTML(String(p.t || ''))}</b>
+                ${p.d ? `<small>${escapeHTML(String(p.d))}</small>` : ''}
+              </span>
+            </li>`).join('')}
         </ul>
+        ${data?.dato ? `<div class="notebook__tip">💡 ${escapeHTML(String(data.dato))}</div>` : ''}
       </div>`;
-    speak('Este es el resumen de hoy'); bumpProgress(10);
-    addBtn('¡Ahora te toca a ti! 🔄', 'btn--primary', transition13);
+    speak('Este es tu resumen de hoy'); bumpProgress(10);
+    // El cambio de rol es OPCIONAL: el estudiante decide
+    addBtn('🐣 Ahora enséñale tú a MIRA', 'btn--primary', transition13);
+    addBtn('🏁 Terminar por hoy', 'btn--ghost', () => app.go('ending'));
+    addBtn('🏠 Inicio', 'btn--ghost', () => app.restart());
   }
 
   // Frame 13 — transición de rol (MIRA se queda a la izquierda)

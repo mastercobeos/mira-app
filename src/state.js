@@ -41,10 +41,11 @@ export function addMaterial(m) {
 export function removeMaterial(i) {
   state.materials.splice(i, 1); save();
 }
-/* Texto concatenado de los materiales legibles, para dar contexto al motor. */
-export function materialsText(limit = 4000) {
+/* Texto concatenado de los materiales legibles (texto, PDF y descripción
+   de imágenes), para dar contexto al motor. */
+export function materialsText(limit = 6000) {
   const txt = state.materials
-    .filter(m => m.kind === 'text' && m.text)
+    .filter(m => m.text)          // texto, pdf o imagen ya interpretada
     .map(m => `— ${m.name} —\n${m.text}`)
     .join('\n\n');
   return txt.length > limit ? txt.slice(0, limit) + '…' : txt;

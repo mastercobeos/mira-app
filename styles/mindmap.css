@@ -69,6 +69,12 @@
   transition: transform .16s var(--ease-bounce);
 }
 .chat__send:hover { transform: translateY(-2px); }
+.chat__attach {
+  width: 42px; height: 42px; flex: none; border: 2px solid var(--line-2); border-radius: 50%;
+  background: var(--surface-2); font-size: 17px; display: grid; place-items: center;
+  transition: transform .16s var(--ease-bounce), background .16s;
+}
+.chat__attach:hover { transform: translateY(-2px); background: var(--line); }
 
 /* Apila en pantallas medianas/chicas: MIRA, pizarrón y chat en columna. */
 @media (max-width: 1000px) {

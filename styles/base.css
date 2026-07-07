@@ -148,6 +148,16 @@ button { font-family: inherit; cursor: pointer; }
 /* fila de opciones */
 .choices { display: flex; flex-wrap: wrap; gap: 12px; }
 
+/* — 🏠 botón discreto de inicio (esquina inferior izquierda) — */
+.home-fab {
+  position: fixed; left: 14px; bottom: 14px; z-index: 40;
+  width: 42px; height: 42px; border: 2px solid rgba(255,255,255,.55); border-radius: 50%;
+  background: rgba(255,255,255,.18); font-size: 18px;
+  display: grid; place-items: center; opacity: .6;
+  transition: opacity .2s, transform .16s var(--ease-bounce), background .2s;
+}
+.home-fab:hover { opacity: 1; background: var(--surface); transform: translateY(-2px); }
+
 /* tarjeta sticker */
 .card {
   background: var(--surface);

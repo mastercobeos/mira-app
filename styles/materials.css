@@ -56,7 +56,11 @@
   border-radius: var(--r-sm); padding: 10px 12px;
 }
 .mat-ic { font-size: 20px; }
-.mat-name { flex: 1; font-weight: 700; color: var(--ink); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mat-tag { font-size: 11px; font-weight: 800; color: var(--ink-mute); background: var(--line); padding: 3px 8px; border-radius: var(--r-pill); }
-.mat-del { border: 0; background: transparent; font-size: 16px; padding: 4px; border-radius: 8px; }
+.mat-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mat-name { font-weight: 700; color: var(--ink); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mat-st { font-size: 11.5px; font-weight: 800; }
+.mat-st--wait { color: var(--sun-deep); }
+.mat-st--ok { color: var(--mint-deep); }
+.mat-st--bad { color: var(--coral-deep); }
+.mat-del { border: 0; background: transparent; font-size: 16px; padding: 4px; border-radius: 8px; align-self: center; }
 .mat-del:hover { background: #ffe3e1; }

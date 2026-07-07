@@ -8,6 +8,7 @@
    Al terminar → "Pasar a quest" (los 3 retos en teach.js). */
 import { state, pushTurn, bumpProgress } from '../state.js';
 import { KID_STYLE, askImage, askJSON } from '../engine.js';
+import { addFiles } from '../materials.js';
 import { miraPortrait, setMood, speak, streamBubble, escapeHTML, confetti, typingHTML } from '../mira.js';
 import { KINDS, makeBoardModel, fetchNodeDetail, fetchIdeaVerdict } from '../mindmap.js';
 import { renderBoard } from '../board.js';
@@ -50,7 +51,9 @@ export function mindmap(app, screen) {
         <div class="chat__head">💬 Habla con MIRA · pídele diagramas</div>
         <div class="chat__log" id="chatLog"></div>
         <div class="chat__field">
-          <input id="chatInput" type="text" maxlength="120" placeholder="ej: hazme un mapa de la fotosíntesis…" autocomplete="off">
+          <input type="file" id="chatFile" hidden multiple accept=".pdf,.txt,.md,.csv,.json,.png,.jpg,.jpeg,.webp,.docx,.pptx">
+          <button class="chat__attach" id="chatAttach" title="Adjuntar apuntes">📎</button>
+          <input id="chatInput" type="text" maxlength="120" placeholder="Escríbeme o adjunta tus apuntes…" autocomplete="off">
           <button class="chat__send" id="chatSend" title="Enviar">➜</button>
         </div>
       </div>
@@ -239,7 +242,40 @@ Reacciona en 2-3 frases: di qué ves en lo que escribió/dibujó el estudiante, 
     const send = () => { const v = input.value.trim(); if (v) { input.value = ''; chatSend(v); } };
     screen.querySelector('#chatSend').addEventListener('click', send);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-    miraSay('¡Pídeme lo que quieras! Ej: «hazme un diagrama de flujo del ciclo del agua» 💜');
+    // 📎 adjuntar apuntes directo desde el chat
+    const fileInput = screen.querySelector('#chatFile');
+    screen.querySelector('#chatAttach').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => { attachFiles(e.target.files); fileInput.value = ''; });
+    miraSay('¡Pídeme lo que quieras! Ej: «hazme un diagrama de flujo del ciclo del agua», o adjunta tus apuntes con 📎 💜');
+  }
+
+  /* El estudiante adjunta apuntes/fotos/PDF desde el chat → MIRA los LEE
+     (texto/pdf/visión) y confirma en el chat según cómo le fue. */
+  function attachFiles(list) {
+    const files = Array.from(list || []);
+    if (!files.length) return;
+    const names = files.map(f => f.name);
+    names.forEach(n => addChatMsg('kid', '📎 ' + n));
+    pushTurn('kid', 'Adjunté material: ' + names.join(', '));
+    const holder = miraTyping();   // "leyendo…" mientras procesa (visión/pdf pueden tardar)
+    setMood(screen, 'thinking');
+    addFiles(files, (results) => {
+      const ok = results.filter(r => r && r.status === 'ready');
+      const bad = results.filter(r => r && (r.status === 'error' || r.status === 'unsupported'));
+      let msg;
+      if (ok.length && !bad.length) {
+        msg = ok.length > 1
+          ? `¡Listo! Ya leí tus ${ok.length} archivos 📚 ¿Quieres que te arme un diagrama con eso?`
+          : `¡Listo! Ya leí «${ok[0].name}» 📚 ¿Quieres que te arme un diagrama con eso?`;
+      } else if (ok.length && bad.length) {
+        msg = `Leí ${ok.length} archivo(s) ✅, pero no pude con ${bad.map(b => '«' + b.name + '»').join(', ')} (súbelo como PDF, imagen o texto).`;
+      } else {
+        msg = `No pude leer ${bad.map(b => '«' + b.name + '»').join(', ')} 😅 Súbelo como PDF, imagen o texto.`;
+      }
+      miraFill(holder, msg); pushTurn('mira', msg);
+      setMood(screen, ok.length ? 'happy' : 'encouraging');
+      if (ok.length) sfx.pop();
+    });
   }
 
   /* Agrega un mensaje al log; devuelve el elemento (para actualizar el "typing"). */

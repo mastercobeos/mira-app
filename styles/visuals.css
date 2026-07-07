@@ -79,6 +79,19 @@
 .notebook li { list-style: none; display: flex; gap: 10px; align-items: center; margin: 10px 0; font-size: 16px; }
 .notebook li .tick { color: #22b07d; font-weight: 800; }
 
+/* resumen completo: idea + explicación + dato curioso */
+.notebook--full { max-width: 560px; }
+.notebook--full li { align-items: flex-start; margin: 12px 0; }
+.notebook--full li .tick { margin-top: 2px; }
+.notebook__pt { display: flex; flex-direction: column; gap: 2px; }
+.notebook__pt b { color: var(--ink); }
+.notebook__pt small { color: var(--ink-soft); font-size: 13.5px; line-height: 1.45; }
+.notebook__tip {
+  margin-top: 16px; padding: 10px 14px; border-radius: var(--r-sm);
+  background: #fff6d9; border: 1px dashed var(--sun-deep);
+  font-size: 14px; font-weight: 700; color: #7a4a12;
+}
+
 /* — Resolución paso a paso (frame 18) — */
 .solution {
   background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-card);

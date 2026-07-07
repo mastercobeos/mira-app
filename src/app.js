@@ -48,6 +48,8 @@ const app = {
     this.current = name;
     this.setSteps(OFF_FLOW.has(name) ? -1 : (STEP_OF[name] ?? 0));
     this.stage.classList.toggle('stage--wide', name === 'mindmap');  // pizarrón usa más ancho
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.style.display = name === 'landing' ? 'none' : 'grid';
     this.stage.innerHTML = '';
     const screen = document.createElement('div');
     screen.className = 'screen';
@@ -85,6 +87,10 @@ function boot() {
   // Botón "reiniciar" del topbar
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) restartBtn.addEventListener('click', () => app.restart());
+
+  // 🏠 botón discreto de inicio (abajo a la izquierda)
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.addEventListener('click', () => app.restart());
 
   // Botón 📎 materiales (subir apuntes en cualquier momento)
   const materialsBtn = document.getElementById('materialsBtn');
